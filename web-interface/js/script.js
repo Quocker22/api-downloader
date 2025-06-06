@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </a>
                 </div>
             </div>
-           
+            
         `;
 
         // Thêm sự kiện cho nút tải xuống trực tiếp
