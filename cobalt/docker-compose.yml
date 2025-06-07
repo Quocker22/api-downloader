@@ -1,38 +1,49 @@
+version: '3.8'
 services:
-    cobalt:
-        image: ghcr.io/imputnet/cobalt:11
+  cobalt:
+    image: ghcr.io/imputnet/cobalt:11
+    init: true
+    read_only: true
+    restart: unless-stopped
+    container_name: cobalt
+    ports:
+      - "8002:9000/tcp"
+      # Nếu bạn sử dụng reverse proxy (như nginx),
+      # bỏ comment dòng dưới và xóa dòng trên (9000:9000/tcp):
+      # - 127.0.0.1:9000:9000
+    environment:
+      # URL của instance, khớp với hostname công khai của Cloudflare Tunnel
+      API_URL: "https://getlink.byhung.com/"
+      # Nếu bạn muốn sử dụng cookies, bỏ comment dòng dưới & phần volumes
+      # COOKIE_PATH: "/cookies.json"
+    labels:
+      - com.centurylinklabs.watchtower.scope=cobalt
+    # Bỏ comment chỉ khi bạn sử dụng biến COOKIE_PATH
+    # volumes:
+    #   - ./cookies.json:/cookies.json
+    networks:
+      - cobalt-network
 
-        init: true
-        read_only: true
-        restart: unless-stopped
-        container_name: cobalt
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: jovial_cerf
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token eyJhIjoiNjQ2YmNjMTJmMzMwNGI4NDEwMjIyMmQzMzJjN2FlMTUiLCJ0IjoiZDYwMWI1NGQtM2E4Zi00MDE4LThkMDAtNDliNmUxZGRmYzk2IiwicyI6Ik16bG1aamd4T1RRdE5qa3pPUzAwTmpJM0xXSTVNVFF0WldRME9EWmhOemRqWmpKaifd
+    networks:
+      - cobalt-network
+    depends_on:
+      - cobalt
 
-        ports:
-            - 8002:9000/tcp
-            # Nếu bạn sử dụng reverse proxy (như nginx),
-            # bỏ comment dòng dưới và xóa dòng trên (9000:9000/tcp):
-            # - 127.0.0.1:9000:9000
+  watchtower:
+    image: ghcr.io/containrrr/watchtower
+    restart: unless-stopped
+    command: --cleanup --scope cobalt --interval 900 --include-restarting
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - cobalt-network
 
-        environment:
-            # Thay thế bằng URL của instance của bạn
-            # nếu không, chức năng tunneling sẽ không hoạt động đúng
-            API_URL: "https://getlink.byhung.com/"
-
-            # Nếu bạn muốn sử dụng cookies để lấy dữ liệu từ các dịch vụ,
-            # bỏ comment dòng dưới & phần volumes
-            # COOKIE_PATH: "/cookies.json"
-
-        labels:
-            - com.centurylinklabs.watchtower.scope=cobalt
-
-        # Bỏ comment chỉ khi bạn sử dụng biến COOKIE_PATH
-        # volumes:
-            # - ./cookies.json:/cookies.json
-
-    # watchtower cập nhật image cobalt tự động
-    watchtower:
-        image: ghcr.io/containrrr/watchtower
-        restart: unless-stopped
-        command: --cleanup --scope cobalt --interval 900 --include-restarting
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
+networks:
+  cobalt-network:
+    name: cobalt_default
+    driver: bridge
