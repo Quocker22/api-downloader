@@ -7,19 +7,10 @@ services:
     container_name: cobalt
     ports:
       - "8002:9000/tcp"
-      # Nếu bạn sử dụng reverse proxy (như nginx),
-      # bỏ comment dòng dưới và xóa dòng trên (9000:9000/tcp):
-      # - 127.0.0.1:9000:9000
     environment:
-      # URL của instance, khớp với hostname công khai của Cloudflare Tunnel
       API_URL: "https://getlink.byhung.com/"
-      # Nếu bạn muốn sử dụng cookies, bỏ comment dòng dưới & phần volumes
-      # COOKIE_PATH: "/cookies.json"
     labels:
       - com.centurylinklabs.watchtower.scope=cobalt
-    # Bỏ comment chỉ khi bạn sử dụng biến COOKIE_PATH
-    # volumes:
-    #   - ./cookies.json:/cookies.json
     networks:
       - cobalt-network
 
@@ -46,4 +37,5 @@ services:
 
 networks:
   cobalt-network:
+    name: cobalt_cobalt-network
     driver: bridge
