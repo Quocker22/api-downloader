@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   cobalt:
     image: ghcr.io/imputnet/cobalt:11
@@ -28,7 +27,9 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: jovial_cerf
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token eyJhIjoiNjQ2YmNjMTJmMzMwNGI4NDEwMjIyMmQzMzJjN2FlMTUiLCJ0IjoiZDYwMWI1NGQtM2E4Zi00MDE4LThkMDAtNDliNmUxZGRmYzk2IiwicyI6Ik16bG1aamd4T1RRdE5qa3pPUzAwTmpJM0xXSTVNVFF0WldRME9EWmhOemRqWmpKaifd
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run
     networks:
       - cobalt-network
     depends_on:
@@ -45,5 +46,4 @@ services:
 
 networks:
   cobalt-network:
-    name: cobalt_default
     driver: bridge
