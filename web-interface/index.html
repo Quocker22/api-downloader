@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobalt Downloader - Vintage</title>
+    <title>FROM DOWNLOADER</title>
+     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💩</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.x/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -42,6 +43,297 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Progress Modal Styles - Thêm vào trong <style> tag của index.html */
+
+        /* Progress Modal Styles */
+        .download-progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: var(--card-bg);
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            box-shadow: 4px 4px 0 var(--secondary-color);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: var(--input-bg);
+            border-radius: 8px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .file-info i {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin-right: 0.75rem;
+        }
+
+        .filename {
+            font-weight: 500;
+            word-break: break-all;
+            color: var(--text-color);
+        }
+
+        .progress-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background-color: var(--input-bg);
+            border-radius: 6px;
+            border: 1px solid var(--primary-color);
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.3),
+                    transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .speed-text {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .time-text {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .save-btn,
+        .cancel-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .save-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .cancel-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .error-message i {
+            font-size: 3rem;
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+
+        .error-message p {
+            color: var(--text-color);
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .save-btn,
+            .cancel-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Dark theme adjustments */
+        [data-theme="dark"] .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        [data-theme="dark"] .progress-bar-fill {
+            background: linear-gradient(90deg, #b87333, #5d8a57);
+        }
+
+        /* Animation for completed download */
+        .download-complete .progress-bar-fill {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scaleY(1);
+            }
+
+            50% {
+                transform: scaleY(1.1);
+            }
         }
 
         .download-link {
@@ -143,6 +435,7 @@
                 transform: rotate(0deg);
             }
         }
+        
     </style>
 </head>
 
@@ -154,13 +447,14 @@
         </div>
         <div class="flex justify-center items-center mb-4">
             <i id="reset-btn" class="fas fa-poo mr-2 text-[#8B5A2B] text-3xl cursor-pointer hover-shake"></i>
-            <h1 class="text-2xl font-bold text-[#4A7043] vintage-title">FROM GOLD</h1>
+            <h1 class="text-2xl font-bold text-[#4A7043] vintage-title">FROM DOWNLOADER</h1>
         </div>
         <div class="mb-4 flex justify-center items-center space-x-2 text-xs text-[#8B5A2B]">
             <span>Nền tảng hỗ trợ:</span>
             <div class="relative">
                 <i id="platforms-icon" class="fas fa-globe text-[#4A7043] cursor-help"></i>
-                <div id="platforms-tooltip" class="absolute hidden bg-[#FFF8E7] border border-[#8B5A2B] p-3 rounded-lg shadow-lg z-10 w-64 text-xs left-1/2 transform -translate-x-1/2 mt-2">
+                <div id="platforms-tooltip"
+                    class="absolute hidden bg-[#FFF8E7] border border-[#8B5A2B] p-3 rounded-lg shadow-lg z-10 w-64 text-xs left-1/2 transform -translate-x-1/2 mt-2">
                     <div class="grid grid-cols-3 gap-2">
                         <div><i class="fab fa-youtube mr-1"></i>YouTube</div>
                         <div><i class="fab fa-tiktok mr-1"></i>TikTok</div>
@@ -189,7 +483,7 @@
         </div>
 
         <div class="relative mb-4">
-            <input type="text" id="url-input" placeholder="Dán URL video cần tải xuống"
+            <input type="text" id="url-input" placeholder="Dán URL video cần tải xuống (URL, URL, URL, ...)"
                 class="input input-bordered w-full rounded-xl bg-[#FFF8E7] text-[#4A7043] vintage-input pr-10" />
             <button id="clear-input"
                 class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B5A2B] opacity-0 transition-opacity duration-200 hover:text-[#6F4A22]">
@@ -220,36 +514,36 @@
     <script src="js/script.js"></script>
     <script>
         // Xử lý tooltip cho nền tảng hỗ trợ
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const platformsIcon = document.getElementById('platforms-icon');
             const platformsTooltip = document.getElementById('platforms-tooltip');
             let isTooltipVisible = false;
-            
+
             // Hiển thị tooltip khi click vào icon
-            platformsIcon.addEventListener('click', function(e) {
+            platformsIcon.addEventListener('click', function (e) {
                 e.stopPropagation();
                 isTooltipVisible = !isTooltipVisible;
                 platformsTooltip.classList.toggle('hidden', !isTooltipVisible);
             });
-            
+
             // Hiển thị tooltip khi hover vào icon
-            platformsIcon.addEventListener('mouseenter', function() {
+            platformsIcon.addEventListener('mouseenter', function () {
                 isTooltipVisible = true;
                 platformsTooltip.classList.remove('hidden');
             });
-            
+
             // Giữ tooltip hiển thị khi di chuột vào tooltip
-            platformsTooltip.addEventListener('mouseenter', function() {
+            platformsTooltip.addEventListener('mouseenter', function () {
                 isTooltipVisible = true;
             });
-            
-            platformsTooltip.addEventListener('mouseleave', function() {
+
+            platformsTooltip.addEventListener('mouseleave', function () {
                 isTooltipVisible = false;
                 platformsTooltip.classList.add('hidden');
             });
-            
+
             // Đóng tooltip khi click ra ngoài
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 if (!platformsTooltip.contains(e.target) && e.target !== platformsIcon) {
                     isTooltipVisible = false;
                     platformsTooltip.classList.add('hidden');

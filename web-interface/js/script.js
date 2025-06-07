@@ -29,10 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
             themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
         }
     }
-    
+
     // Gọi hàm khởi tạo theme
     initTheme();
-    
+
     // Xử lý sự kiện click vào nút toggle theme
     themeToggle.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
             themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
         }
     });
-    
+
     // Xử lý sự kiện click nút tải xuống
     downloadBtn.addEventListener('click', () => {
         const input = urlInput.value.trim();
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Tách URLs bằng dấu phẩy
         const urls = input.split(',').map(url => url.trim()).filter(url => url);
-        
+
         if (urls.length === 0) {
             showError('Vui lòng nhập ít nhất một URL hợp lệ');
             return;
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBtn.click();
         }
     });
-    
+
     // Xử lý hiển thị nút clear input
     urlInput.addEventListener('input', () => {
         if (urlInput.value.trim() !== '') {
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInputBtn.style.opacity = '0';
         }
     });
-    
+
     // Xử lý sự kiện click nút clear
     clearInputBtn.addEventListener('click', () => {
         urlInput.value = '';
@@ -99,48 +99,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hàm xử lý tải xuống hàng loạt
     async function processBatchDownload(urls) {
         if (isBatchProcessing) return;
-        
+
         isBatchProcessing = true;
         batchResults = [];
-        
+
         // Hiển thị container và khởi tạo giao diện batch
         resultContainer.classList.remove('hidden');
         hideError();
         downloadResult.classList.remove('hidden');
-        
+
         // Tạo giao diện cho batch processing
         initBatchUI(urls);
-        
+
         // Xử lý từng URL với delay
         for (let i = 0; i < urls.length; i++) {
             const url = urls[i];
             const itemId = `batch-item-${i}`;
-            
+
             try {
                 updateBatchItemStatus(itemId, 'loading', 'Đang xử lý...');
-                
+
                 const result = await processSingleUrl(url);
                 batchResults.push({ url, result, status: 'success' });
-                
+
                 if (result.status === 'error') {
                     updateBatchItemStatus(itemId, 'error', getErrorMessage(result.error));
                 } else {
                     updateBatchItemStatus(itemId, 'success', 'Thành công');
                     addDownloadButtons(itemId, result);
                 }
-                
+
             } catch (error) {
                 console.error(`Lỗi xử lý URL ${url}:`, error);
                 batchResults.push({ url, error: error.message, status: 'error' });
                 updateBatchItemStatus(itemId, 'error', `Lỗi: ${error.message}`);
             }
-            
+
             // Delay giữa các request (1 giây)
             if (i < urls.length - 1) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
-        
+
         isBatchProcessing = false;
         updateBatchSummary();
     }
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="space-y-3">
         `;
-        
+
         urls.forEach((url, index) => {
             batchHTML += `
                 <div id="batch-item-${index}" class="bg-white p-3 rounded-lg border border-[#8B5A2B] border-opacity-30">
@@ -181,12 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         });
-        
+
         batchHTML += `
                 </div>
             </div>
         `;
-        
+
         downloadResult.innerHTML = batchHTML;
     }
 
@@ -194,10 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateBatchItemStatus(itemId, status, message) {
         const item = document.getElementById(itemId);
         if (!item) return;
-        
+
         const statusIcon = item.querySelector('.batch-status-icon i');
         const statusText = item.querySelector('.batch-status-text');
-        
+
         // Cập nhật icon
         statusIcon.className = '';
         switch (status) {
@@ -211,41 +211,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusIcon.className = 'fas fa-exclamation-circle text-red-600';
                 break;
         }
-        
+
         // Cập nhật text
         statusText.textContent = message;
-        statusText.className = `batch-status-text text-sm ${
-            status === 'error' ? 'text-red-600' : 
+        statusText.className = `batch-status-text text-sm ${status === 'error' ? 'text-red-600' :
             status === 'success' ? 'text-green-600' : 'text-[#8B5A2B]'
-        }`;
+            }`;
     }
 
     // Thêm nút download cho item thành công
     function addDownloadButtons(itemId, data) {
         const item = document.getElementById(itemId);
         if (!item) return;
-        
+
         const buttonsContainer = item.querySelector('.batch-download-buttons');
         if (!buttonsContainer) return;
-        
+
         let downloadData = data;
-        
+
         // Xử lý dữ liệu tùy theo loại response
         if (data.status === 'picker' && data.picker && data.picker.length > 0) {
             downloadData = data.picker[0];
         }
-        
+
         const { url, filename } = downloadData;
-        
+
         if (!url) return;
-        
+
         buttonsContainer.innerHTML = `
             <div class="flex flex-col space-y-2 mt-2">
                 <div class="text-xs font-medium text-[#4A7043] truncate">
                     ${filename || 'video'}
                 </div>
                 <div class="flex space-x-2">
-                    <button class="direct-download-btn btn btn-sm bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-lg border-none flex-1">
+                    <button class="progress-download-btn btn btn-sm bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-lg border-none flex-1">
                         <i class="fas fa-download mr-1"></i> Tải xuống
                     </button>
                     <button class="open-tab-btn btn btn-sm bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-lg border-none flex-1">
@@ -254,19 +253,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
-        
+
         buttonsContainer.classList.remove('hidden');
-        
-        // Thêm sự kiện cho nút tải xuống
-        const downloadBtn = buttonsContainer.querySelector('.direct-download-btn');
+
+        // Thêm sự kiện cho nút tải xuống với progress bar
+        const downloadBtn = buttonsContainer.querySelector('.progress-download-btn');
         downloadBtn.addEventListener('click', () => {
-            const downloadLink = document.createElement('a');
-            downloadLink.href = url;
-            downloadLink.download = filename || 'video.mp4';
-            downloadLink.style.display = 'none';
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            downloadWithProgress(url, filename);
         });
 
         // Thêm sự kiện cho nút mở tab mới
@@ -280,11 +273,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateBatchSummary() {
         const summaryElement = document.getElementById('batch-summary');
         if (!summaryElement) return;
-        
+
         const total = batchResults.length;
         const success = batchResults.filter(r => r.status === 'success' && (!r.result || r.result.status !== 'error')).length;
         const errors = total - success;
-        
+
         summaryElement.innerHTML = `
             <div class="flex items-center space-x-3">
                 <span class="text-green-600"><i class="fas fa-check mr-1"></i>${success}</span>
@@ -297,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Xử lý một URL đơn lẻ
     async function processSingleUrl(url) {
         const requestData = { url };
-        
+
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -307,11 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             body: JSON.stringify(requestData)
         });
-        
+
         if (!response.ok) {
             throw new Error(`${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         return data;
     }
@@ -321,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!error || !error.code) {
             return 'Lỗi không xác định';
         }
-        
+
         switch (error.code) {
             case 'error.api.youtube.login':
                 return 'Video yêu cầu đăng nhập YouTube';
@@ -358,17 +351,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Response status:', response.status);
             console.log('Response headers:', [...response.headers.entries()]);
-            
+
             if (!response.ok) {
                 hideLoading();
                 showError(`Lỗi API: ${response.status} ${response.statusText}`);
                 return;
             }
-            
+
             const data = await response.json();
             console.log('Response data:', data);
             hideLoading();
-            
+
             if (!data) {
                 showError('Không nhận được dữ liệu từ API');
                 return;
@@ -380,15 +373,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     showError('Lỗi không xác định từ API');
                     return;
                 }
-                
+
                 let errorMsg = `Lỗi: ${data.error.code}`;
-                
+
                 if (data.error.code === 'error.api.youtube.login') {
                     errorMsg = 'Video yêu cầu đăng nhập YouTube (có thể bị giới hạn độ tuổi hoặc riêng tư). Hãy thử với video công khai.';
                 } else if (data.error.code === 'error.api.invalid_body') {
                     errorMsg = 'Lỗi cấu trúc dữ liệu gửi đi. Vui lòng chỉ nhập URL và thử lại.';
                 }
-                
+
                 showError(errorMsg);
                 return;
             }
@@ -437,12 +430,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Xử lý link tải xuống trực tiếp (giữ nguyên)
+    // Thay thế hàm handleDownloadLink cũ
     function handleDownloadLink(data) {
         const { url, filename } = data;
         console.log('URL tải xuống:', url);
         console.log('Tên file:', filename);
-        
+
         if (!url) {
             showError('URL tải xuống không hợp lệ');
             return;
@@ -450,24 +443,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         downloadResult.classList.remove('hidden');
         downloadResult.innerHTML = `
-            <div class="bg-[#FFF8E7] p-4 rounded-xl border border-[#8B5A2B] mb-4">
-                <div class="flex items-center mb-2">
-                    <i class="fas fa-file-video text-[#4A7043] mr-2 text-xl"></i>
-                    <p class="font-bold text-[#4A7043] truncate">${filename || 'video'}</p>
-                </div>
-                
-                <div class="flex flex-col space-y-2">
-                    <button id="direct-download" class="btn bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-xl border-none transition transform hover:scale-105">
-                        <i class="fas fa-download mr-2"></i> Tải xuống ngay
-                    </button>
-                    
-                    <button class="open-new-tab-btn btn bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-xl border-none transition transform hover:scale-105">
-                        <i class="fas fa-external-link-alt mr-2"></i> Mở trong tab mới
-                    </button>
-                </div>
+        <div class="bg-[#FFF8E7] p-4 rounded-xl border border-[#8B5A2B] mb-4">
+            <div class="flex items-center mb-2">
+                <i class="fas fa-file-video text-[#4A7043] mr-2 text-xl"></i>
+                <p class="font-bold text-[#4A7043] truncate">${filename || 'video'}</p>
             </div>
-        `;
+            
+            <div class="flex flex-col space-y-2">
+                <button id="progress-download" class="btn bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-xl border-none transition transform hover:scale-105">
+                    <i class="fas fa-download mr-2"></i> Tải xuống
+                </button>
+                
+                <button id="direct-download" class="btn bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-xl border-none transition transform hover:scale-105">
+                    <i class="fas fa-external-link-alt mr-2"></i> Tải xuống trực tiếp
+                </button>
+            </div>
+        </div>
+    `;
 
+        // Progress download
+        document.getElementById('progress-download').addEventListener('click', () => {
+            downloadWithProgress(url, filename);
+        });
+
+        // Direct download (giữ nguyên)
         document.getElementById('direct-download').addEventListener('click', () => {
             const downloadLink = document.createElement('a');
             downloadLink.href = url;
@@ -476,13 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
-
-            console.log('Bắt đầu tải xuống:', url, 'Tên file:', filename || 'video.mp4');
-        });
-
-        // Thêm sự kiện cho nút mở tab mới
-        document.querySelector('.open-new-tab-btn').addEventListener('click', () => {
-            window.open(url, '_blank', 'noopener,noreferrer');
         });
     }
 
@@ -507,30 +499,299 @@ document.addEventListener('DOMContentLoaded', () => {
     function hideError() {
         errorContainer.classList.add('hidden');
     }
-    
+
     // Reset ứng dụng về trạng thái ban đầu
     function resetApp() {
         // Dừng batch processing nếu đang chạy
         isBatchProcessing = false;
         batchResults = [];
-        
+
         // Xóa nội dung input
         urlInput.value = '';
         clearInputBtn.style.opacity = '0';
-        
+
         // Ẩn các container
         resultContainer.classList.add('hidden');
         downloadResult.classList.add('hidden');
         errorContainer.classList.add('hidden');
-        
+
         // Xóa nội dung
         downloadResult.innerHTML = '';
         errorMessage.textContent = '';
-        
+
         // Focus vào input
         urlInput.focus();
     }
-    
+
     // Xử lý sự kiện click nút reset
     resetBtn.addEventListener('click', resetApp);
 });
+
+// Hàm download với progress bar
+async function downloadWithProgress(url, filename) {
+    try {
+        // Tạo progress modal
+        const modal = createProgressModal(filename);
+        document.body.appendChild(modal);
+
+        // Hiển thị modal
+        modal.style.display = 'flex';
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const contentLength = response.headers.get('Content-Length');
+        const total = parseInt(contentLength, 10);
+
+        const reader = response.body.getReader();
+        let receivedLength = 0;
+        let chunks = [];
+
+        const progressBar = modal.querySelector('.progress-bar-fill');
+        const progressText = modal.querySelector('.progress-text');
+        const speedText = modal.querySelector('.speed-text');
+        const timeText = modal.querySelector('.time-text');
+
+        const startTime = Date.now();
+
+        while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) break;
+
+            chunks.push(value);
+            receivedLength += value.length;
+
+            // Cập nhật progress
+            if (total) {
+                const percentage = (receivedLength / total) * 100;
+                progressBar.style.width = percentage + '%';
+                progressText.textContent = `${Math.round(percentage)}%`;
+
+                // Tính toán tốc độ
+                const elapsed = (Date.now() - startTime) / 1000;
+                const speed = receivedLength / elapsed;
+                const remaining = (total - receivedLength) / speed;
+
+                speedText.textContent = `${formatBytes(speed)}/s`;
+                timeText.textContent = `${formatTime(remaining)} còn lại`;
+            }
+        }
+
+        // Tạo blob từ chunks
+        const blob = new Blob(chunks);
+
+        // Cập nhật UI hoàn thành
+        progressBar.style.width = '100%';
+        progressText.textContent = '100%';
+        speedText.textContent = 'Hoàn thành';
+        timeText.textContent = '';
+
+        // Hiển thị nút lưu
+        showSaveButton(modal, blob, filename);
+
+    } catch (error) {
+        console.error('Download error:', error);
+        // Hiển thị lỗi
+        showDownloadError(error.message);
+    }
+}
+
+// Hàm download với XMLHttpRequest (alternative)
+function downloadWithXHR(url, filename) {
+    return new Promise((resolve, reject) => {
+        const modal = createProgressModal(filename);
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'blob';
+
+        const progressBar = modal.querySelector('.progress-bar-fill');
+        const progressText = modal.querySelector('.progress-text');
+        const speedText = modal.querySelector('.speed-text');
+        const timeText = modal.querySelector('.time-text');
+
+        let startTime = Date.now();
+        let lastLoaded = 0;
+
+        xhr.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+                const percentage = (event.loaded / event.total) * 100;
+                progressBar.style.width = percentage + '%';
+                progressText.textContent = `${Math.round(percentage)}%`;
+
+                // Tính tốc độ
+                const now = Date.now();
+                const elapsed = (now - startTime) / 1000;
+                const speed = (event.loaded - lastLoaded) / elapsed;
+                const remaining = (event.total - event.loaded) / speed;
+
+                speedText.textContent = `${formatBytes(speed)}/s`;
+                timeText.textContent = `${formatTime(remaining)} còn lại`;
+
+                lastLoaded = event.loaded;
+                startTime = now;
+            }
+        });
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+                speedText.textContent = 'Hoàn thành';
+                timeText.textContent = '';
+
+                showSaveButton(modal, xhr.response, filename);
+                resolve(xhr.response);
+            } else {
+                reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+            }
+        });
+
+        xhr.addEventListener('error', () => {
+            reject(new Error('Network error'));
+        });
+
+        xhr.send();
+    });
+}
+
+// Tạo modal progress
+function createProgressModal(filename) {
+    const modal = document.createElement('div');
+    modal.className = 'download-progress-modal';
+    modal.innerHTML = `
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Đang tải xuống</h3>
+                <button class="close-btn" onclick="closeProgressModal(this)">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="file-info">
+                    <i class="fas fa-file-video"></i>
+                    <span class="filename">${filename || 'video.mp4'}</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span class="progress-text">0%</span>
+                        <span class="speed-text">Đang kết nối...</span>
+                    </div>
+                    <div class="time-text">Đang tính toán...</div>
+                </div>
+                <div class="action-buttons" style="display: none;">
+                    <button class="save-btn" onclick="triggerSave(this)">
+                        <i class="fas fa-save"></i> Lưu file
+                    </button>
+                    <button class="cancel-btn" onclick="closeProgressModal(this)">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    return modal;
+}
+
+// Hiển thị nút lưu
+function showSaveButton(modal, blob, filename) {
+    const actionButtons = modal.querySelector('.action-buttons');
+    const saveBtn = modal.querySelector('.save-btn');
+
+    // Lưu blob data vào button để sử dụng sau
+    saveBtn._blobData = blob;
+    saveBtn._filename = filename;
+
+    actionButtons.style.display = 'flex';
+}
+
+// Trigger save file
+function triggerSave(button) {
+    const blob = button._blobData;
+    const filename = button._filename;
+
+    if (!blob) return;
+
+    // Tạo URL cho blob
+    const url = URL.createObjectURL(blob);
+
+    // Tạo link download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'video.mp4';
+    a.style.display = 'none';
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Cleanup URL
+    URL.revokeObjectURL(url);
+
+    // Đóng modal
+    closeProgressModal(button);
+}
+
+// Đóng modal
+function closeProgressModal(element) {
+    const modal = element.closest('.download-progress-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Utility functions
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function formatTime(seconds) {
+    if (!seconds || !isFinite(seconds)) return 'Không xác định';
+    if (seconds < 60) return Math.round(seconds) + ' giây';
+    if (seconds < 3600) return Math.round(seconds / 60) + ' phút';
+    return Math.round(seconds / 3600) + ' giờ';
+}
+
+// Hiển thị lỗi download
+function showDownloadError(message) {
+    const errorModal = document.createElement('div');
+    errorModal.className = 'download-progress-modal';
+    errorModal.innerHTML = `
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Lỗi tải xuống</h3>
+                <button class="close-btn" onclick="closeProgressModal(this)">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>${message}</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="cancel-btn" onclick="closeProgressModal(this)">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(errorModal);
+    errorModal.style.display = 'flex';
+}
+
+
