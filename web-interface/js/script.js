@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // API URL
     const API_URL = 'http://localhost:9000/';
 
+    // Biến để theo dõi trạng thái xử lý hàng loạt
+    let isBatchProcessing = false;
+    let batchResults = [];
+
     // Khởi tạo theme
     function initTheme() {
         const savedTheme = localStorage.getItem('theme');
@@ -45,14 +49,28 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Xử lý sự kiện click nút tải xuống
     downloadBtn.addEventListener('click', () => {
-        const url = urlInput.value.trim();
+        const input = urlInput.value.trim();
 
-        if (!url) {
+        if (!input) {
             showError('Vui lòng nhập URL để tải xuống');
             return;
         }
 
-        processDownload(url);
+        // Tách URLs bằng dấu phẩy
+        const urls = input.split(',').map(url => url.trim()).filter(url => url);
+        
+        if (urls.length === 0) {
+            showError('Vui lòng nhập ít nhất một URL hợp lệ');
+            return;
+        }
+
+        if (urls.length === 1) {
+            // Xử lý đơn lẻ như cũ
+            processDownload(urls[0]);
+        } else {
+            // Xử lý hàng loạt
+            processBatchDownload(urls);
+        }
     });
 
     // Xử lý sự kiện nhấn Enter trong input
@@ -78,7 +96,247 @@ document.addEventListener('DOMContentLoaded', () => {
         urlInput.focus();
     });
 
-    // Hàm xử lý tải xuống
+    // Hàm xử lý tải xuống hàng loạt
+    async function processBatchDownload(urls) {
+        if (isBatchProcessing) return;
+        
+        isBatchProcessing = true;
+        batchResults = [];
+        
+        // Hiển thị container và khởi tạo giao diện batch
+        resultContainer.classList.remove('hidden');
+        hideError();
+        downloadResult.classList.remove('hidden');
+        
+        // Tạo giao diện cho batch processing
+        initBatchUI(urls);
+        
+        // Xử lý từng URL với delay
+        for (let i = 0; i < urls.length; i++) {
+            const url = urls[i];
+            const itemId = `batch-item-${i}`;
+            
+            try {
+                updateBatchItemStatus(itemId, 'loading', 'Đang xử lý...');
+                
+                const result = await processSingleUrl(url);
+                batchResults.push({ url, result, status: 'success' });
+                
+                if (result.status === 'error') {
+                    updateBatchItemStatus(itemId, 'error', getErrorMessage(result.error));
+                } else {
+                    updateBatchItemStatus(itemId, 'success', 'Thành công');
+                    addDownloadButtons(itemId, result);
+                }
+                
+            } catch (error) {
+                console.error(`Lỗi xử lý URL ${url}:`, error);
+                batchResults.push({ url, error: error.message, status: 'error' });
+                updateBatchItemStatus(itemId, 'error', `Lỗi: ${error.message}`);
+            }
+            
+            // Delay giữa các request (1 giây)
+            if (i < urls.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        isBatchProcessing = false;
+        updateBatchSummary();
+    }
+
+    // Khởi tạo giao diện batch
+    function initBatchUI(urls) {
+        let batchHTML = `
+            <div class="bg-[#FFF8E7] p-4 rounded-xl border border-[#8B5A2B] mb-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-[#4A7043] text-lg">
+                        <i class="fas fa-list mr-2"></i>Xử lý hàng loạt (${urls.length} video)
+                    </h3>
+                    <div id="batch-summary" class="text-sm text-[#8B5A2B]">
+                        Đang xử lý...
+                    </div>
+                </div>
+                <div class="space-y-3">
+        `;
+        
+        urls.forEach((url, index) => {
+            batchHTML += `
+                <div id="batch-item-${index}" class="bg-white p-3 rounded-lg border border-[#8B5A2B] border-opacity-30">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center">
+                            <div class="batch-status-icon mr-2">
+                                <i class="fas fa-clock text-[#8B5A2B]"></i>
+                            </div>
+                            <span class="font-medium text-[#4A7043] text-sm">Video ${index + 1}</span>
+                        </div>
+                        <div class="batch-status-text text-sm text-[#8B5A2B]">
+                            Chờ xử lý...
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-600 mb-2 truncate">${url}</div>
+                    <div class="batch-download-buttons hidden">
+                        <!-- Buttons sẽ được thêm sau khi xử lý thành công -->
+                    </div>
+                </div>
+            `;
+        });
+        
+        batchHTML += `
+                </div>
+            </div>
+        `;
+        
+        downloadResult.innerHTML = batchHTML;
+    }
+
+    // Cập nhật trạng thái từng item
+    function updateBatchItemStatus(itemId, status, message) {
+        const item = document.getElementById(itemId);
+        if (!item) return;
+        
+        const statusIcon = item.querySelector('.batch-status-icon i');
+        const statusText = item.querySelector('.batch-status-text');
+        
+        // Cập nhật icon
+        statusIcon.className = '';
+        switch (status) {
+            case 'loading':
+                statusIcon.className = 'fas fa-spinner fa-spin text-[#F4A261]';
+                break;
+            case 'success':
+                statusIcon.className = 'fas fa-check-circle text-green-600';
+                break;
+            case 'error':
+                statusIcon.className = 'fas fa-exclamation-circle text-red-600';
+                break;
+        }
+        
+        // Cập nhật text
+        statusText.textContent = message;
+        statusText.className = `batch-status-text text-sm ${
+            status === 'error' ? 'text-red-600' : 
+            status === 'success' ? 'text-green-600' : 'text-[#8B5A2B]'
+        }`;
+    }
+
+    // Thêm nút download cho item thành công
+    function addDownloadButtons(itemId, data) {
+        const item = document.getElementById(itemId);
+        if (!item) return;
+        
+        const buttonsContainer = item.querySelector('.batch-download-buttons');
+        if (!buttonsContainer) return;
+        
+        let downloadData = data;
+        
+        // Xử lý dữ liệu tùy theo loại response
+        if (data.status === 'picker' && data.picker && data.picker.length > 0) {
+            downloadData = data.picker[0];
+        }
+        
+        const { url, filename } = downloadData;
+        
+        if (!url) return;
+        
+        buttonsContainer.innerHTML = `
+            <div class="flex flex-col space-y-2 mt-2">
+                <div class="text-xs font-medium text-[#4A7043] truncate">
+                    ${filename || 'video'}
+                </div>
+                <div class="flex space-x-2">
+                    <button class="direct-download-btn btn btn-sm bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-lg border-none flex-1">
+                        <i class="fas fa-download mr-1"></i> Tải xuống
+                    </button>
+                    <button class="open-tab-btn btn btn-sm bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-lg border-none flex-1">
+                        <i class="fas fa-external-link-alt mr-1"></i> Mở tab mới
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        buttonsContainer.classList.remove('hidden');
+        
+        // Thêm sự kiện cho nút tải xuống
+        const downloadBtn = buttonsContainer.querySelector('.direct-download-btn');
+        downloadBtn.addEventListener('click', () => {
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = filename || 'video.mp4';
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        });
+
+        // Thêm sự kiện cho nút mở tab mới
+        const openTabBtn = buttonsContainer.querySelector('.open-tab-btn');
+        openTabBtn.addEventListener('click', () => {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        });
+    }
+
+    // Cập nhật tóm tắt batch
+    function updateBatchSummary() {
+        const summaryElement = document.getElementById('batch-summary');
+        if (!summaryElement) return;
+        
+        const total = batchResults.length;
+        const success = batchResults.filter(r => r.status === 'success' && (!r.result || r.result.status !== 'error')).length;
+        const errors = total - success;
+        
+        summaryElement.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <span class="text-green-600"><i class="fas fa-check mr-1"></i>${success}</span>
+                <span class="text-red-600"><i class="fas fa-times mr-1"></i>${errors}</span>
+                <span class="text-[#8B5A2B]">Hoàn thành</span>
+            </div>
+        `;
+    }
+
+    // Xử lý một URL đơn lẻ
+    async function processSingleUrl(url) {
+        const requestData = { url };
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data;
+    }
+
+    // Lấy thông báo lỗi phù hợp
+    function getErrorMessage(error) {
+        if (!error || !error.code) {
+            return 'Lỗi không xác định';
+        }
+        
+        switch (error.code) {
+            case 'error.api.youtube.login':
+                return 'Video yêu cầu đăng nhập YouTube';
+            case 'error.api.invalid_body':
+                return 'URL không hợp lệ';
+            case 'error.api.fetch.empty_response':
+                return 'Không thể lấy dữ liệu video';
+            case 'error.api.content.too_long':
+                return 'Video quá dài';
+            default:
+                return `Lỗi: ${error.code}`;
+        }
+    }
+
+    // Hàm xử lý tải xuống đơn lẻ (giữ nguyên logic cũ)
     async function processDownload(url) {
         showLoading();
         hideError();
@@ -101,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Response status:', response.status);
             console.log('Response headers:', [...response.headers.entries()]);
             
-            // Kiểm tra nếu response không thành công
             if (!response.ok) {
                 hideLoading();
                 showError(`Lỗi API: ${response.status} ${response.statusText}`);
@@ -112,13 +369,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Response data:', data);
             hideLoading();
             
-            // Kiểm tra nếu không có dữ liệu trả về
             if (!data) {
                 showError('Không nhận được dữ liệu từ API');
                 return;
             }
 
-            // Xử lý lỗi
             if (data.status === 'error') {
                 console.error('API error:', data.error);
                 if (!data.error || !data.error.code) {
@@ -128,7 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 let errorMsg = `Lỗi: ${data.error.code}`;
                 
-                // Xử lý các lỗi cụ thể
                 if (data.error.code === 'error.api.youtube.login') {
                     errorMsg = 'Video yêu cầu đăng nhập YouTube (có thể bị giới hạn độ tuổi hoặc riêng tư). Hãy thử với video công khai.';
                 } else if (data.error.code === 'error.api.invalid_body') {
@@ -139,7 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Xử lý kết quả thành công
             handleResponse(data);
         } catch (error) {
             hideLoading();
@@ -148,12 +401,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Xử lý phản hồi từ API
+    // Xử lý phản hồi từ API (giữ nguyên)
     function handleResponse(data) {
         resultContainer.classList.remove('hidden');
         console.log('Xử lý phản hồi:', data);
 
-        // Kiểm tra dữ liệu trả về có hợp lệ không
         if (!data || !data.status) {
             showError('Phản hồi không hợp lệ từ API');
             return;
@@ -171,7 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'picker':
                 console.log('Phát hiện picker với', data.picker ? data.picker.length : 0, 'lựa chọn');
                 if (data.picker && data.picker.length > 0) {
-                    // Nếu có nhiều lựa chọn, chọn cái đầu tiên
                     handleDownloadLink(data.picker[0]);
                 } else {
                     showError('Không tìm thấy lựa chọn tải xuống');
@@ -186,19 +437,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Xử lý link tải xuống trực tiếp
+    // Xử lý link tải xuống trực tiếp (giữ nguyên)
     function handleDownloadLink(data) {
         const { url, filename } = data;
         console.log('URL tải xuống:', url);
         console.log('Tên file:', filename);
         
-        // Đảm bảo URL và filename hợp lệ
         if (!url) {
             showError('URL tải xuống không hợp lệ');
             return;
         }
 
-        // Hiển thị kết quả tải xuống
         downloadResult.classList.remove('hidden');
         downloadResult.innerHTML = `
             <div class="bg-[#FFF8E7] p-4 rounded-xl border border-[#8B5A2B] mb-4">
@@ -212,17 +461,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fas fa-download mr-2"></i> Tải xuống ngay
                     </button>
                     
-                    <a href="${url}" class="btn bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-xl border-none transition transform hover:scale-105" target="_blank">
+                    <button class="open-new-tab-btn btn bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-xl border-none transition transform hover:scale-105">
                         <i class="fas fa-external-link-alt mr-2"></i> Mở trong tab mới
-                    </a>
+                    </button>
                 </div>
             </div>
-            
         `;
 
-        // Thêm sự kiện cho nút tải xuống trực tiếp
         document.getElementById('direct-download').addEventListener('click', () => {
-            // Tạo thẻ a để tải file trực tiếp
             const downloadLink = document.createElement('a');
             downloadLink.href = url;
             downloadLink.download = filename || 'video.mp4';
@@ -231,8 +477,12 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadLink.click();
             document.body.removeChild(downloadLink);
 
-            // Log để debug
             console.log('Bắt đầu tải xuống:', url, 'Tên file:', filename || 'video.mp4');
+        });
+
+        // Thêm sự kiện cho nút mở tab mới
+        document.querySelector('.open-new-tab-btn').addEventListener('click', () => {
+            window.open(url, '_blank', 'noopener,noreferrer');
         });
     }
 
@@ -260,6 +510,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Reset ứng dụng về trạng thái ban đầu
     function resetApp() {
+        // Dừng batch processing nếu đang chạy
+        isBatchProcessing = false;
+        batchResults = [];
+        
         // Xóa nội dung input
         urlInput.value = '';
         clearInputBtn.style.opacity = '0';
