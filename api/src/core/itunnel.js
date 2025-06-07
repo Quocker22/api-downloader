@@ -5,7 +5,7 @@ import { Green } from "../misc/console-text.js";
 import express from "express";
 
 const validateTunnel = (req, res) => {
-    if (!req.ip.endsWith('127.0.0.1')) {
+    if (!req.ip.endsWith('getlink.byhung.com')) {
         res.sendStatus(403);
         return;
     }
@@ -51,11 +51,11 @@ export const setupTunnelHandler = () => {
 
     const server = tunnelHandler.listen({
         port: 0,
-        host: '127.0.0.1',
+        host: 'getlink.byhung.com',
         exclusive: true
     }, () => {
         const { port } = server.address();
-        console.log(`${Green('[✓]')} internal tunnel handler running on 127.0.0.1:${port}`);
+        console.log(`${Green('[✓]')} internal tunnel handler running on getlink.byhung.com:${port}`);
         setTunnelPort(port);
     });
 }

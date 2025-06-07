@@ -22,7 +22,7 @@ function transformObject(streamInfo, hlsObject) {
         fullUrl = new URL(hlsObject.uri, streamInfo.url);
     }
 
-    if (fullUrl.hostname !== '127.0.0.1') {
+    if (fullUrl.hostname !== 'getlink.byhung.com') {
         hlsObject.uri = createInternalStream(fullUrl.toString(), streamInfo);
 
         if (hlsObject.map) {

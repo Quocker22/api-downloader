@@ -12,7 +12,7 @@ import { hashHmac } from "../security/secrets.js";
 import { zip } from "../misc/utils.js";
 
 // optional dependency
-const freebind = env.freebindCIDR && await import('freebind').catch(() => {});
+const freebind = env.freebindCIDR && await import('freebind').catch(() => { });
 
 const streamCache = new Store('streams');
 
@@ -103,7 +103,7 @@ export function getInternalTunnel(id) {
 
 export function getInternalTunnelFromURL(url) {
     url = new URL(url);
-    if (url.hostname !== '127.0.0.1') {
+    if (url.hostname !== 'getlink.byhung.com') {
         return;
     }
 
@@ -142,7 +142,7 @@ export function createInternalStream(url, obj = {}) {
         transplant: obj.transplant
     });
 
-    let streamLink = new URL('/itunnel', `http://127.0.0.1:${env.tunnelPort}`);
+    let streamLink = new URL('/itunnel', `http://getlink.byhung.com:${env.tunnelPort}`);
     streamLink.searchParams.set('id', streamID);
 
     const cleanup = () => {
@@ -157,7 +157,7 @@ export function createInternalStream(url, obj = {}) {
 
 function getInternalTunnelId(url) {
     url = new URL(url);
-    if (url.hostname !== '127.0.0.1') {
+    if (url.hostname !== 'getlink.byhung.com') {
         return;
     }
 
@@ -173,12 +173,12 @@ export function destroyInternalStream(url) {
     }
 }
 
-const transplantInternalTunnels = function(tunnelUrls, transplantUrls) {
+const transplantInternalTunnels = function (tunnelUrls, transplantUrls) {
     if (tunnelUrls.length !== transplantUrls.length) {
         return;
     }
 
-    for (const [ tun, url ] of zip(tunnelUrls, transplantUrls)) {
+    for (const [tun, url] of zip(tunnelUrls, transplantUrls)) {
         const id = getInternalTunnelId(tun);
         const itunnel = getInternalTunnel(id);
 
@@ -221,7 +221,7 @@ const transplantTunnel = async function (dispatcher) {
 
         transplantInternalTunnels(tunnels, response.urls);
     }
-    catch {}
+    catch { }
     finally {
         finished();
         delete this.pendingTransplant;

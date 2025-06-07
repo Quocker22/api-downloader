@@ -1,6 +1,6 @@
 // Configuration and constants
 export const CONFIG = {
-    API_URL: 'http://localhost:8002/',
+    API_URL: 'https://getlink.byhung.com/',
     BATCH_DELAY: 1000, // 1 second delay between batch requests
     SUPPORTED_PLATFORMS: [
         { name: 'YouTube', icon: 'fab fa-youtube' },
