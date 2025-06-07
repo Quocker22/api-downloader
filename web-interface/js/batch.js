@@ -2,12 +2,14 @@ import { ApiService } from './api.js';
 import { DownloadManager } from './download.js';
 import { CONFIG, ERROR_MESSAGES } from './config.js';
 import { sleep } from './utils.js';
+import { SettingsManager } from './settings.js';
 
 // Batch processing manager
 export class BatchProcessor {
     constructor() {
         this.apiService = new ApiService();
         this.downloadManager = new DownloadManager();
+        this.settingsManager = new SettingsManager();
         this.isProcessing = false;
         this.results = [];
     }
@@ -29,7 +31,9 @@ export class BatchProcessor {
             try {
                 this.updateItemStatus(itemId, 'loading', 'Đang xử lý...');
 
-                const result = await this.apiService.processUrl(url);
+                // Get current settings as options
+                const currentSettings = this.settingsManager.getSettings();
+                const result = await this.apiService.processUrl(url, currentSettings);
                 this.results.push({ url, result, status: 'success' });
 
                 if (result.status === 'error') {
@@ -73,7 +77,7 @@ export class BatchProcessor {
 
         urls.forEach((url, index) => {
             batchHTML += `
-                <div id="batch-item-${index}" class="bg-white p-3 rounded-lg border border-[#8B5A2B] border-opacity-30">
+                <div id="batch-item-${index}" class="bg-[#EDE4E0] p-3 rounded-lg border border-[#8B5A2B] border-opacity-30">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center">
                             <div class="batch-status-icon mr-2">
