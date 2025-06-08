@@ -3,5 +3,28 @@
     "packageManager": "pnpm@9.6.0",
     "engines": {
         "pnpm": ">=9"
+    },
+    "version": "1.0.0",
+    "description": "<div align=\"center\">     <br/>     <p>         <img src=\"web/static/favicon.png\" title=\"cobalt\" alt=\"cobalt logo\" width=\"100\" />     </p>     <p>         best way to save what you love         <br/>         <a href=\"https://cobalt.tools\">             cobalt.tools         </a>     </p>     <p>         <a href=\"https://discord.gg/pQPt8HBUPu\">             💬 community discord server         </a>         <br/>         <a href=\"https://x.com/justusecobalt\">             🐦 twitter         </a>         <a href=\"https://bsky.app/profile/cobalt.tools\">             🦋 bluesky         </a>     </p>     <br/> </div>",
+    "main": "index.js",
+    "directories": {
+        "doc": "docs"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Quocker22/api-downloader.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Quocker22/api-downloader/issues"
+    },
+    "homepage": "https://github.com/Quocker22/api-downloader#readme",
+    "devDependencies": {
+        "vite": "^6.3.5"
     }
 }

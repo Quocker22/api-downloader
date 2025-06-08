@@ -20,7 +20,7 @@ export class SingleProcessor {
             console.log('Gửi request với URL:', url);
             console.log('Settings:', settings);
 
-            const data = await this.apiService.processUrl(url, settings);
+            const data = await this.apiService.processUrl(url, { ...settings });
             console.log('Response data:', data);
 
             this.hideLoading();
@@ -100,21 +100,14 @@ export class SingleProcessor {
                     <button id="progress-download" class="btn bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-xl border-none transition transform hover:scale-105">
                         <i class="fas fa-download mr-2"></i> Tải xuống với tiến trình
                     </button>
-                    
-                    <button id="direct-download" class="btn bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-xl border-none transition transform hover:scale-105">
-                        <i class="fas fa-external-link-alt mr-2"></i> Tải xuống trực tiếp
-                    </button>
                 </div>
             </div>
         `;
 
-        // Bind events
+        // Bind events với closure để capture url và filename
         document.getElementById('progress-download').addEventListener('click', () => {
+            console.log('Clicking download with url:', url, 'filename:', filename);
             this.downloadManager.downloadWithProgress(url, filename);
-        });
-
-        document.getElementById('direct-download').addEventListener('click', () => {
-            this.downloadManager.downloadDirect(url, filename);
         });
     }
 

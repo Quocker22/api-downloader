@@ -12,6 +12,7 @@ export class BatchProcessor {
         this.settingsManager = new SettingsManager();
         this.isProcessing = false;
         this.results = [];
+        this.batchDownloadInfo = new Map(); // Store info for retry
     }
 
     async processBatch(urls) {
@@ -153,15 +154,12 @@ export class BatchProcessor {
 
         buttonsContainer.innerHTML = `
             <div class="flex flex-col space-y-2 mt-2">
-                <div class="text-xs font-medium text-[#4A7043] truncate">
+                <div class="text-xs font-medium text-[#4A7043] truncate overflow-hidden" title="${filename || 'video'}">
                     ${filename || 'video'}
                 </div>
                 <div class="flex space-x-2">
-                    <button class="progress-download-btn btn btn-sm bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-lg border-none flex-1">
+                    <button class="progress-download-btn btn md:btn-sm bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-lg border-none flex-1">
                         <i class="fas fa-download mr-1"></i> Tải xuống
-                    </button>
-                    <button class="open-tab-btn btn btn-sm bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-lg border-none flex-1">
-                        <i class="fas fa-external-link-alt mr-1"></i> Mở tab mới
                     </button>
                 </div>
             </div>
@@ -172,12 +170,8 @@ export class BatchProcessor {
         // Add event listeners
         const downloadBtn = buttonsContainer.querySelector('.progress-download-btn');
         downloadBtn.addEventListener('click', () => {
-            this.downloadManager.downloadWithProgress(url, filename);
-        });
-
-        const openTabBtn = buttonsContainer.querySelector('.open-tab-btn');
-        openTabBtn.addEventListener('click', () => {
-            window.open(url, '_blank', 'noopener,noreferrer');
+            // Replace the entire item with progress UI
+            this.showProgressInBatchItem(itemId, url, filename);
         });
     }
 
@@ -211,5 +205,267 @@ export class BatchProcessor {
     reset() {
         this.isProcessing = false;
         this.results = [];
+    }
+
+    showProgressInBatchItem(itemId, url, filename) {
+        const item = document.getElementById(itemId);
+        if (!item) return;
+
+        // Generate unique progress ID for this batch item
+        const progressId = `batch-progress-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Replace item content with progress UI
+        item.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center min-w-0 flex-1 text-overflow-container">
+                    <div class="mr-2 flex-shrink-0">
+                        <i class="fas fa-download text-[#8B5A2B]"></i>
+                    </div>
+                    <span class="font-medium text-[#4A7043] text-sm progress-filename" title="${filename || 'video'}">${filename || 'video'}</span>
+                </div>
+                <span id="${progressId}-percent" class="text-sm text-[#8B5A2B] flex-shrink-0 ml-2">0%</span>
+            </div>
+            
+            <div class="mb-2">
+                <div class="flex justify-between text-xs text-[#8B5A2B] mb-1">
+                    <span id="${progressId}-status">Đang chuẩn bị...</span>
+                    <span id="${progressId}-speed">-- kB/s</span>
+                </div>
+                <div class="w-full bg-[#E5D5C8] rounded-full h-2">
+                    <div id="${progressId}-bar" class="bg-[#8B5A2B] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between text-xs text-[#8B5A2B] mb-2">
+                <span id="${progressId}-downloaded">0 kB</span>
+                <span id="${progressId}-total">-- kB</span>
+            </div>
+            
+            <button id="${progressId}-cancel" class="btn btn-xs bg-[#C94C4C] text-white hover:bg-[#A73D3D] rounded border-none">
+                <i class="fas fa-times mr-1"></i> Hủy
+            </button>
+            
+            <button id="${progressId}-retry" class="retry-button ml-2 hidden">
+                <i class="fas fa-redo mr-1"></i> Tải lại
+            </button>
+        `;
+
+        // Store download info for retry
+        this.batchDownloadInfo.set(progressId, { url, filename });
+
+        // Start download with progress tracking
+        this.downloadWithProgressInBatch(url, filename, progressId);
+    }
+
+    async downloadWithProgressInBatch(url, filename, progressId) {
+        try {
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const contentLength = response.headers.get('content-length');
+            const total = contentLength ? parseInt(contentLength, 10) : 0;
+            
+            this.updateBatchProgressUI(progressId, {
+                status: 'Đang tải xuống...',
+                total: total
+            });
+
+            const reader = response.body.getReader();
+            const chunks = [];
+            let downloaded = 0;
+            let startTime = Date.now();
+            let lastUpdateTime = startTime;
+
+            // Store download info for cancellation
+            const downloadInfo = {
+                reader,
+                cancelled: false
+            };
+
+            // Add cancel functionality
+            const cancelBtn = document.getElementById(`${progressId}-cancel`);
+            const retryBtn = document.getElementById(`${progressId}-retry`);
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    downloadInfo.cancelled = true;
+                    downloadInfo.reader?.cancel();
+                    this.updateBatchProgressUI(progressId, {
+                        status: '❌ Đã hủy',
+                        showError: true
+                    });
+                });
+            }
+            
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => {
+                    this.retryBatchDownload(progressId);
+                });
+            }
+
+            while (true) {
+                const { done, value } = await reader.read();
+                
+                // Check if cancelled
+                if (downloadInfo.cancelled) {
+                    throw new Error('Tải xuống đã bị hủy');
+                }
+                
+                if (done) break;
+                
+                chunks.push(value);
+                downloaded += value.length;
+                
+                // Update progress every 200ms for batch (less frequent than single)
+                const currentTime = Date.now();
+                if (currentTime - lastUpdateTime > 200) {
+                    const elapsedTime = (currentTime - startTime) / 1000;
+                    const speed = downloaded / elapsedTime;
+                    
+                    this.updateBatchProgressUI(progressId, {
+                        downloaded,
+                        total,
+                        speed,
+                        percent: total > 0 ? (downloaded / total * 100) : 0
+                    });
+                    
+                    lastUpdateTime = currentTime;
+                }
+            }
+
+            // Complete download
+            const blob = new Blob(chunks);
+            const downloadUrl = window.URL.createObjectURL(blob);
+            
+            this.updateBatchProgressUI(progressId, {
+                status: 'Hoàn thành!',
+                downloaded,
+                total: downloaded,
+                percent: 100
+            });
+
+            // Auto download
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename || 'download';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Cleanup
+            window.URL.revokeObjectURL(downloadUrl);
+            
+            // Show success message
+            setTimeout(() => {
+                this.updateBatchProgressUI(progressId, {
+                    status: '✅ Tải xuống thành công!',
+                    showSuccess: true
+                });
+            }, 500);
+
+        } catch (error) {
+            this.updateBatchProgressUI(progressId, {
+                status: '❌ Lỗi: ' + error.message,
+                showError: true
+            });
+        }
+    }
+
+    updateBatchProgressUI(progressId, data) {
+        const statusEl = document.getElementById(`${progressId}-status`);
+        const percentEl = document.getElementById(`${progressId}-percent`);
+        const barEl = document.getElementById(`${progressId}-bar`);
+        const downloadedEl = document.getElementById(`${progressId}-downloaded`);
+        const totalEl = document.getElementById(`${progressId}-total`);
+        const speedEl = document.getElementById(`${progressId}-speed`);
+        const cancelBtn = document.getElementById(`${progressId}-cancel`);
+        const retryBtn = document.getElementById(`${progressId}-retry`);
+
+        if (data.status && statusEl) {
+            statusEl.textContent = data.status;
+        }
+
+        if (data.percent !== undefined && percentEl && barEl) {
+            const percent = Math.round(data.percent);
+            percentEl.textContent = `${percent}%`;
+            barEl.style.width = `${percent}%`;
+        }
+
+        if (data.downloaded !== undefined && downloadedEl) {
+            downloadedEl.textContent = this.formatBytes(data.downloaded);
+        }
+
+        if (data.total !== undefined && totalEl) {
+            totalEl.textContent = data.total > 0 ? this.formatBytes(data.total) : '-- kB';
+        }
+
+        if (data.speed !== undefined && speedEl) {
+            speedEl.textContent = `${this.formatBytes(data.speed)}/s`;
+        }
+
+        if (data.showSuccess && cancelBtn && retryBtn) {
+            cancelBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Hoàn thành';
+            cancelBtn.className = 'btn btn-xs bg-[#4A7043] text-white rounded border-none';
+            cancelBtn.disabled = true;
+            
+            // Show retry button as link-style
+            retryBtn.innerHTML = '<i class="fas fa-redo mr-1"></i> Tải lại';
+            retryBtn.className = 'retry-button ml-2';
+            retryBtn.classList.remove('hidden');
+        }
+
+        if (data.showError && cancelBtn && retryBtn) {
+            cancelBtn.innerHTML = '<i class="fas fa-times mr-1"></i> Đóng';
+            cancelBtn.className = 'btn btn-xs bg-[#C94C4C] text-white rounded border-none';
+            
+            // Show retry button as link-style
+            retryBtn.innerHTML = '<i class="fas fa-redo mr-1"></i> Thử lại';
+            retryBtn.className = 'retry-button ml-2';
+            retryBtn.classList.remove('hidden');
+        }
+    }
+
+    retryBatchDownload(progressId) {
+        const downloadData = this.batchDownloadInfo.get(progressId);
+        if (downloadData) {
+            // Reset progress UI
+            this.updateBatchProgressUI(progressId, {
+                status: 'Đang chuẩn bị...',
+                percent: 0,
+                downloaded: 0,
+                total: 0,
+                speed: 0
+            });
+            
+            // Hide retry button and restore cancel button
+            const cancelBtn = document.getElementById(`${progressId}-cancel`);
+            const retryBtn = document.getElementById(`${progressId}-retry`);
+            
+            if (cancelBtn) {
+                cancelBtn.innerHTML = '<i class="fas fa-times mr-1"></i> Hủy';
+                cancelBtn.className = 'btn btn-xs bg-[#C94C4C] text-white hover:bg-[#A73D3D] rounded border-none';
+                cancelBtn.disabled = false;
+            }
+            
+            if (retryBtn) {
+                retryBtn.classList.add('hidden');
+            }
+            
+            // Restart download
+            this.downloadWithProgressInBatch(downloadData.url, downloadData.filename, progressId);
+        }
+    }
+
+    formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        
+        const k = 1024;
+        const sizes = ['B', 'kB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 }

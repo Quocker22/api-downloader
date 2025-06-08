@@ -759,6 +759,82 @@ body {
     line-height: 1.4;
 }
 
+/* Text overflow fixes */
+.text-overflow-container {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.text-truncate-safe {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* Batch item text overflow fixes */
+.batch-download-buttons .truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+}
+
+/* Progress UI text overflow fixes */
+.progress-filename {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    /* max-width: 400px; */
+}
+
+/* Retry Button Styles */
+.retry-button {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    text-decoration: underline !important;
+    color: var(--primary-color) !important;
+    font-size: 0.875rem !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    transition: color 0.2s ease !important;
+}
+
+.retry-button:hover {
+    color: var(--primary-hover) !important;
+    text-decoration: underline !important;
+}
+
+.retry-button:focus {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+}
+
+.retry-button i {
+    margin-right: 0.25rem !important;
+}
+
+@media (max-width: 768px) {
+    .progress-filename {
+        max-width: 150px;
+    }
+    
+    .batch-download-buttons .truncate {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-filename {
+        max-width: 120px;
+        font-size: 0.75rem;
+    }
+}
+
 /* Responsive design for smaller screens */
 @media (max-width: 768px) {
     .settings-content,

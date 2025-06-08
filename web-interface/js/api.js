@@ -23,7 +23,7 @@ export class ApiService {
         const validParams = [
             'url', 'audioBitrate', 'audioFormat', 'downloadMode', 'filenameStyle',
             'videoQuality', 'disableMetadata', 'youtubeVideoCodec', 'youtubeDubLang',
-            'convertGif', 'allowH265', 'tiktokFullAudio', 'youtubeBetterAudio', 'youtubeHLS'
+            'convertGif', 'allowH265', 'tiktokFullAudio', 'youtubeBetterAudio', 'youtubeHLS', 'localProcessing'
         ];
 
         // Merge with default options

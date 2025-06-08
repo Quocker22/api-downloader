@@ -27,7 +27,9 @@ export class SettingsManager {
 
     // Get current settings
     getSettings() {
-        return { ...this.settings };
+        return {
+            ...this.settings
+        };
     }
 
     // Update a specific setting
@@ -235,7 +237,7 @@ export class SettingsManager {
         const options = CONFIG.OPTION_LABELS[settingKey];
         if (!options) return '';
 
-        return Object.entries(options).map(([value, label]) => 
+        return Object.entries(options).map(([value, label]) =>
             `<option value="${value}" ${this.settings[settingKey] === value ? 'selected' : ''}>${label}</option>`
         ).join('');
     }
@@ -251,7 +253,7 @@ export class SettingsManager {
 
         // Close modal
         closeBtn?.addEventListener('click', () => this.hideSettings());
-        
+
         // Click outside to close
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -277,11 +279,11 @@ export class SettingsManager {
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const tabId = tab.dataset.tab;
-                
+
                 // Update active tab
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                
+
                 // Update active content
                 tabContents.forEach(content => content.classList.remove('active'));
                 document.getElementById(`tab-${tabId}`)?.classList.add('active');
@@ -307,7 +309,7 @@ export class SettingsManager {
     saveCurrentSettings() {
         const modal = document.getElementById('settings-modal');
         if (!modal) return;
-        
+
         // Save selects and text inputs
         modal.querySelectorAll('select, input[type="text"]').forEach(input => {
             if (input.value !== '') {

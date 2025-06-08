@@ -4,6 +4,39 @@
 
 Giao diện web nâng cao cho Cobalt API với đầy đủ tính năng hỗ trợ tất cả các tùy chọn và kiểu phản hồi từ API. Giao diện được thiết kế với phong cách vintage hiện đại và hỗ trợ đa ngôn ngữ (Tiếng Việt).
 
+## 🚀 Build và Development
+
+Dự án này sử dụng **Vite** để bundle và tối ưu hóa:
+
+### Development
+```bash
+# Cài đặt dependencies
+npm install
+
+# Chạy development server (hot reload)
+npm run dev
+# Mở http://localhost:3000
+```
+
+### Production Build
+```bash
+# Build cho production (tối ưu hóa, minify)
+npm run build
+
+# Preview production build
+npm run preview
+# Mở http://localhost:4173
+
+# Build với clean
+npm run build:clean
+```
+
+### Deployment
+Sau khi build, thư mục `dist/` chứa:
+- ✅ HTML, CSS, JS đã được minify và tối ưu
+- ✅ Assets với hash để cache busting
+- ✅ Sẵn sàng deploy lên bất kỳ static hosting nào
+
 ## Tính năng chính
 
 ### 🎛️ Hệ thống cài đặt nâng cao
