@@ -33,7 +33,7 @@ export const CONFIG = {
         audioFormat: 'mp3', // best/mp3/ogg/wav/opus
         downloadMode: 'auto', // auto/audio/mute
         filenameStyle: 'basic', // classic/pretty/basic/nerdy
-        videoQuality: '1080', // max/4320/2160/1440/1080/720/480/360/240/144
+        videoQuality: 'max', // max/4320/2160/1440/1080/720/480/360/240/144
         disableMetadata: false,
         
         // Service-specific options (matching exact schema parameters)

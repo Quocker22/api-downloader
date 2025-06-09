@@ -21,7 +21,13 @@ export class SingleProcessor {
             console.log('Settings:', settings);
 
             const data = await this.apiService.processUrl(url, { ...settings });
-            console.log('Response data:', data);
+            console.log('=== API RESPONSE DEBUG ===');
+            console.log('Full response data:', JSON.stringify(data, null, 2));
+            console.log('Response status:', data?.status);
+            console.log('Response URL:', data?.url);
+            console.log('Response filename:', data?.filename);
+            console.log('Response picker:', data?.picker);
+            console.log('========================');
 
             this.hideLoading();
 
@@ -98,7 +104,7 @@ export class SingleProcessor {
                 
                 <div class="flex flex-col space-y-2">
                     <button id="progress-download" class="btn bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-xl border-none transition transform hover:scale-105">
-                        <i class="fas fa-download mr-2"></i> Tải xuống với tiến trình
+                        <i class="fas fa-download mr-2"></i> Tải xuống
                     </button>
                 </div>
             </div>
@@ -138,8 +144,89 @@ export class SingleProcessor {
     }
 
     handlePickerResponse(data) {
-        // Show picker modal for multiple items
-        this.pickerModal.show(data);
+        console.log('Picker response with', data.picker?.length, 'options');
+        
+        if (!data.picker || data.picker.length === 0) {
+            this.showError('Không có option nào để tải xuống');
+            return;
+        }
+
+        // If only one option, auto-select it
+        if (data.picker.length === 1) {
+            console.log('Only one option, auto-selecting:', data.picker[0]);
+            this.handleDownloadLink(data.picker[0]);
+            return;
+        }
+
+        // Multiple options - check if user wants auto-select best quality
+        const bestQuality = this.findBestQuality(data.picker);
+        if (bestQuality) {
+            console.log('Auto-selecting best quality:', bestQuality);
+            
+            // Show options but highlight the best one
+            this.showPickerWithBestOption(data, bestQuality);
+        } else {
+            // Show picker modal for multiple items
+            this.pickerModal.show(data);
+        }
+    }
+
+    findBestQuality(options) {
+        // Try to find the best quality option based on common patterns
+        if (!options || options.length === 0) return null;
+        
+        // Sort by likely quality indicators
+        const sorted = options.slice().sort((a, b) => {
+            // Prefer options with higher numbers in filename/url
+            const aNumbers = (a.filename || a.url || '').match(/\d+/g) || [];
+            const bNumbers = (b.filename || b.url || '').match(/\d+/g) || [];
+            
+            const aMax = aNumbers.length > 0 ? Math.max(...aNumbers.map(n => parseInt(n))) : 0;
+            const bMax = bNumbers.length > 0 ? Math.max(...bNumbers.map(n => parseInt(n))) : 0;
+            
+            return bMax - aMax;
+        });
+        
+        return sorted[0];
+    }
+
+    showPickerWithBestOption(data, bestOption) {
+        const downloadResult = document.getElementById('download-result');
+        downloadResult.classList.remove('hidden');
+        
+        downloadResult.innerHTML = `
+            <div class="bg-[#FFF8E7] p-4 rounded-xl border border-[#8B5A2B] mb-4">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-video text-[#4A7043] mr-2 text-xl"></i>
+                    <h3 class="font-bold text-[#4A7043]">Chọn chất lượng tải xuống</h3>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-[#8B5A2B] mb-2">Đề xuất (chất lượng tốt nhất):</p>
+                    <div class="bg-[#E5D5C8] p-3 rounded-lg border-2 border-[#8B5A2B]">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-[#4A7043]">${bestOption.filename || 'Video chất lượng cao'}</span>
+                            <button class="btn btn-sm bg-[#8B5A2B] text-white hover:bg-[#6F4A22] rounded-lg border-none" 
+                                    onclick="window.singleProcessor.handleDownloadLink(${JSON.stringify(bestOption).replace(/"/g, '&quot;')})">
+                                <i class="fas fa-download mr-1"></i> Tải xuống
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-[#8B5A2B] border-opacity-30 pt-3">
+                    <p class="text-sm text-[#8B5A2B] mb-2">Tất cả các tùy chọn:</p>
+                    <button class="btn btn-sm bg-[#4A7043] text-white hover:bg-[#3A5734] rounded-lg border-none" 
+                            onclick="window.pickerModal.show(${JSON.stringify(data).replace(/"/g, '&quot;')})">
+                        <i class="fas fa-list mr-1"></i> Xem tất cả (${data.picker.length} tùy chọn)
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Make sure the picker modal and single processor are globally accessible
+        window.pickerModal = this.pickerModal;
+        window.singleProcessor = this;
     }
 
     handleErrorResponse(data) {

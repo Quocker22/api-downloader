@@ -92,17 +92,81 @@ export class SettingsManager {
                         <h3 class="settings-group-title">Cài đặt video</h3>
                         
                         <div class="settings-field">
-                            <label class="settings-label" for="videoQuality">Chất lượng video:</label>
-                            <select id="videoQuality" class="settings-select">
-                                ${this.createOptions('videoQuality')}
-                            </select>
+                            <label class="settings-label">Chất lượng video:</label>
+                            <div class="radio-buttons-group compact" id="videoQuality-group">
+                                <label class="radio-button ${this.settings.videoQuality === 'max' ? 'active' : ''}" data-value="max">
+                                    <input type="radio" name="videoQuality" value="max" ${this.settings.videoQuality === 'max' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-crown"></i>
+                                        <span>Tối đa</span>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.videoQuality === '2160' ? 'active' : ''}" data-value="2160">
+                                    <input type="radio" name="videoQuality" value="2160" ${this.settings.videoQuality === '2160' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-gem"></i>
+                                        <span>4K</span>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.videoQuality === '1440' ? 'active' : ''}" data-value="1440">
+                                    <input type="radio" name="videoQuality" value="1440" ${this.settings.videoQuality === '1440' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-medal"></i>
+                                        <span>2K</span>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.videoQuality === '1080' ? 'active' : ''}" data-value="1080">
+                                    <input type="radio" name="videoQuality" value="1080" ${this.settings.videoQuality === '1080' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-star"></i>
+                                        <span>1080p</span>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.videoQuality === '720' ? 'active' : ''}" data-value="720">
+                                    <input type="radio" name="videoQuality" value="720" ${this.settings.videoQuality === '720' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-circle"></i>
+                                        <span>720p</span>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.videoQuality === '480' ? 'active' : ''}" data-value="480">
+                                    <input type="radio" name="videoQuality" value="480" ${this.settings.videoQuality === '480' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-dot-circle"></i>
+                                        <span>480p</span>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
                         <div class="settings-field">
-                            <label class="settings-label" for="downloadMode">Chế độ tải:</label>
-                            <select id="downloadMode" class="settings-select">
-                                ${this.createOptions('downloadMode')}
-                            </select>
+                            <label class="settings-label">Chế độ tải:</label>
+                            <div class="radio-buttons-group compact" id="downloadMode-group">
+                                <label class="radio-button ${this.settings.downloadMode === 'auto' ? 'active' : ''}" data-value="auto">
+                                    <input type="radio" name="downloadMode" value="auto" ${this.settings.downloadMode === 'auto' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-video"></i>
+                                        <span>Video + Âm thanh</span>
+                                        <small>Tự động</small>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.downloadMode === 'audio' ? 'active' : ''}" data-value="audio">
+                                    <input type="radio" name="downloadMode" value="audio" ${this.settings.downloadMode === 'audio' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-music"></i>
+                                        <span>Chỉ âm thanh</span>
+                                        <small>Audio only</small>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.downloadMode === 'mute' ? 'active' : ''}" data-value="mute">
+                                    <input type="radio" name="downloadMode" value="mute" ${this.settings.downloadMode === 'mute' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-video-slash"></i>
+                                        <span>Chỉ video</span>
+                                        <small>No audio</small>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
                         <div class="settings-field">
@@ -113,10 +177,37 @@ export class SettingsManager {
                         </div>
 
                         <div class="settings-field">
-                            <label class="settings-label" for="filenameStyle">Kiểu tên file:</label>
-                            <select id="filenameStyle" class="settings-select">
-                                ${this.createOptions('filenameStyle')}
-                            </select>
+                            <label class="settings-label">Kiểu tên file:</label>
+                            <div class="radio-buttons-group compact" id="filenameStyle-group">
+                                <label class="radio-button ${this.settings.filenameStyle === 'classic' ? 'active' : ''}" data-value="classic">
+                                    <input type="radio" name="filenameStyle" value="classic" ${this.settings.filenameStyle === 'classic' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Cổ điển</span>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.filenameStyle === 'pretty' ? 'active' : ''}" data-value="pretty">
+                                    <input type="radio" name="filenameStyle" value="pretty" ${this.settings.filenameStyle === 'pretty' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-heart"></i>
+                                        <span>Đẹp</span>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.filenameStyle === 'basic' ? 'active' : ''}" data-value="basic">
+                                    <input type="radio" name="filenameStyle" value="basic" ${this.settings.filenameStyle === 'basic' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-file"></i>
+                                        <span>Cơ bản</span>
+                                    </div>
+                                </label>
+                                <label class="radio-button ${this.settings.filenameStyle === 'nerdy' ? 'active' : ''}" data-value="nerdy">
+                                    <input type="radio" name="filenameStyle" value="nerdy" ${this.settings.filenameStyle === 'nerdy' ? 'checked' : ''} style="display: none;">
+                                    <div class="radio-content">
+                                        <i class="fas fa-code"></i>
+                                        <span>Chi tiết</span>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -303,6 +394,30 @@ export class SettingsManager {
                 this.updateSetting(checkbox.id, checkbox.checked);
             });
         });
+
+        // Handle radio button groups
+        modal.querySelectorAll('.radio-buttons-group').forEach(group => {
+            const radioButtons = group.querySelectorAll('.radio-button');
+            radioButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const value = button.dataset.value;
+                    const groupId = group.id.replace('-group', '');
+                    
+                    // Update visual state
+                    radioButtons.forEach(rb => rb.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Update hidden radio input
+                    const radioInput = button.querySelector('input[type="radio"]');
+                    if (radioInput) {
+                        radioInput.checked = true;
+                    }
+                    
+                    // Update setting
+                    this.updateSetting(groupId, value);
+                });
+            });
+        });
     }
 
     // Save current form values
@@ -320,6 +435,15 @@ export class SettingsManager {
         // Save checkboxes
         modal.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             this.settings[checkbox.id] = checkbox.checked;
+        });
+
+        // Save radio button groups
+        modal.querySelectorAll('.radio-buttons-group').forEach(group => {
+            const groupId = group.id.replace('-group', '');
+            const checkedRadio = group.querySelector('input[type="radio"]:checked');
+            if (checkedRadio) {
+                this.settings[groupId] = checkedRadio.value;
+            }
         });
 
         this.saveSettings();
@@ -341,6 +465,29 @@ export class SettingsManager {
         modal.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             if (this.settings[checkbox.id] !== undefined) {
                 checkbox.checked = this.settings[checkbox.id];
+            }
+        });
+
+        // Update radio button groups
+        modal.querySelectorAll('.radio-buttons-group').forEach(group => {
+            const groupId = group.id.replace('-group', '');
+            const currentValue = this.settings[groupId];
+            
+            if (currentValue !== undefined) {
+                // Remove active from all buttons
+                group.querySelectorAll('.radio-button').forEach(button => {
+                    button.classList.remove('active');
+                });
+                
+                // Add active to current value
+                const activeButton = group.querySelector(`[data-value="${currentValue}"]`);
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                    const radioInput = activeButton.querySelector('input[type="radio"]');
+                    if (radioInput) {
+                        radioInput.checked = true;
+                    }
+                }
             }
         });
     }

@@ -870,6 +870,152 @@ body {
     }
 }
 
+/* Radio Button Groups */
+.radio-buttons-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.radio-button {
+    display: block;
+    background-color: var(--input-bg);
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.radio-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(139, 90, 43, 0.15);
+    border-color: var(--secondary-color);
+}
+
+.radio-button.active {
+    background-color: rgba(74, 112, 67, 0.1);
+    border-color: var(--secondary-color);
+    box-shadow: 0 2px 8px rgba(74, 112, 67, 0.2);
+}
+
+.radio-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.radio-content i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+    transition: color 0.2s;
+}
+
+.radio-button.active .radio-content i {
+    color: var(--secondary-color);
+}
+
+.radio-content span {
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.radio-content small {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    opacity: 0.8;
+}
+
+.radio-button.active .radio-content small {
+    color: var(--secondary-color);
+}
+
+/* Compact Radio Button Groups for Quality Settings */
+.radio-buttons-group.compact {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 8px;
+}
+
+.radio-buttons-group.compact .radio-button {
+    padding: 8px 6px;
+    min-height: 60px;
+}
+
+.radio-buttons-group.compact .radio-content {
+    gap: 2px;
+}
+
+.radio-buttons-group.compact .radio-content i {
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+}
+
+.radio-buttons-group.compact .radio-content span {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Special icons for quality levels */
+.radio-button[data-value="max"] .radio-content i {
+    color: #FFD700; /* Gold for max quality */
+}
+
+.radio-button[data-value="2160"] .radio-content i {
+    color: #9B59B6; /* Purple for 4K */
+}
+
+.radio-button[data-value="1440"] .radio-content i {
+    color: #E74C3C; /* Red for 2K */
+}
+
+.radio-button[data-value="1080"] .radio-content i {
+    color: #3498DB; /* Blue for 1080p */
+}
+
+.radio-button[data-value="720"] .radio-content i {
+    color: #2ECC71; /* Green for 720p */
+}
+
+.radio-button[data-value="480"] .radio-content i {
+    color: #F39C12; /* Orange for 480p */
+}
+
+.radio-button.active[data-value="max"] .radio-content i,
+.radio-button.active[data-value="2160"] .radio-content i,
+.radio-button.active[data-value="1440"] .radio-content i,
+.radio-button.active[data-value="1080"] .radio-content i,
+.radio-button.active[data-value="720"] .radio-content i,
+.radio-button.active[data-value="480"] .radio-content i {
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments for compact radio buttons */
+@media (max-width: 768px) {
+    .radio-buttons-group.compact {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .radio-buttons-group.compact .radio-button {
+        padding: 6px 4px;
+        min-height: 50px;
+    }
+    
+    .radio-buttons-group.compact .radio-content i {
+        font-size: 1rem;
+    }
+    
+    .radio-buttons-group.compact .radio-content span {
+        font-size: 0.75rem;
+    }
+}
+
 /* Animation keyframes */
 @keyframes slideIn {
     from {
