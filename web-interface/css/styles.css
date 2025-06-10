@@ -1036,3 +1036,113 @@ body {
         opacity: 1;
     }
 }
+
+/* Footer Styles */
+.footer-content {
+    color: var(--primary-color);
+    transition: color 0.3s ease;
+}
+
+.footer-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: var(--primary-hover);
+}
+
+[data-theme="dark"] .footer-content {
+    color: var(--primary-color);
+}
+
+[data-theme="dark"] .footer-link {
+    color: var(--primary-color);
+}
+
+[data-theme="dark"] .footer-link:hover {
+    color: var(--primary-hover);
+}
+
+/* Textarea specific styling */
+.vintage-input[type="textarea"],
+textarea.vintage-input {
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 120px;
+    max-height: 300px;
+    padding: 12px 16px;
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: auto;
+    word-wrap: normal;
+    word-break: normal;
+}
+
+.vintage-input[type="textarea"]:focus,
+textarea.vintage-input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(74, 112, 67, 0.1);
+    background-color: var(--bg-color);
+}
+
+.vintage-input[type="textarea"]::placeholder,
+textarea.vintage-input::placeholder {
+    color: rgba(139, 90, 43, 0.6);
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* Custom scrollbar for textarea */
+.vintage-input[type="textarea"]::-webkit-scrollbar,
+textarea.vintage-input::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.vintage-input[type="textarea"]::-webkit-scrollbar-track,
+textarea.vintage-input::-webkit-scrollbar-track {
+    background: rgba(139, 90, 43, 0.1);
+    border-radius: 4px;
+}
+
+.vintage-input[type="textarea"]::-webkit-scrollbar-thumb,
+textarea.vintage-input::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.vintage-input[type="textarea"]::-webkit-scrollbar-thumb:hover,
+textarea.vintage-input::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
+}
+
+/* Dark theme textarea adjustments */
+[data-theme="dark"] .vintage-input[type="textarea"],
+[data-theme="dark"] textarea.vintage-input {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .vintage-input[type="textarea"]:focus,
+[data-theme="dark"] textarea.vintage-input:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(93, 138, 87, 0.2);
+}
+
+/* Clear button positioning for textarea */
+.relative textarea + #clear-input {
+    top: 12px;
+    right: 12px;
+    transform: none;
+}

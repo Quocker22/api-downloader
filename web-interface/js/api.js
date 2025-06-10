@@ -21,9 +21,7 @@ export class ApiService {
     async processUrl(url, options = {}) {
         // Valid API parameters according to Cobalt API schema
         const validParams = [
-            'url', 'audioBitrate', 'audioFormat', 'downloadMode', 'filenameStyle',
-            'videoQuality', 'disableMetadata', 'youtubeVideoCodec', 'youtubeDubLang',
-            'convertGif', 'allowH265', 'tiktokFullAudio', 'youtubeBetterAudio', 'youtubeHLS', 'localProcessing'
+            'url', 'videoQuality', 'downloadMode', 'filenameStyle'
         ];
 
         // Merge with default options
@@ -34,7 +32,7 @@ export class ApiService {
 
         // Build request data with only valid parameters
         const requestData = { url };
-        
+
         // Add only valid parameters with non-empty values
         Object.keys(allOptions).forEach(key => {
             if (validParams.includes(key)) {
@@ -44,7 +42,7 @@ export class ApiService {
                 }
             }
         });
-        
+
         const headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -106,7 +104,7 @@ export class ApiService {
         }
 
         const data = await response.json();
-        
+
         // Automatically set the bearer token
         if (data.token) {
             this.setAuthToken(data.token, 'Bearer');
@@ -117,7 +115,7 @@ export class ApiService {
 
     async downloadFile(url) {
         const response = await fetch(url);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

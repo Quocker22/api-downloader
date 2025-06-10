@@ -58,9 +58,11 @@ export class App {
             this.handleDownload();
         });
 
-        // Enter key in input
-        this.urlInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+        // Enter key handling for textarea
+        this.urlInput.addEventListener('keydown', (e) => {
+            // Ctrl+Enter or Cmd+Enter to submit (for textarea)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
                 this.downloadBtn.click();
             }
         });

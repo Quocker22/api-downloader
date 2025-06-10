@@ -19,7 +19,11 @@ export function sleep(ms) {
 }
 
 export function parseUrls(input) {
-    return input.split(',').map(url => url.trim()).filter(url => url);
+    // Split by both commas and newlines, then filter and validate
+    return input
+        .split(/[,\n\r]+/)
+        .map(url => url.trim())
+        .filter(url => url && validateUrl(url));
 }
 
 export function validateUrl(url) {

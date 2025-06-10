@@ -62,10 +62,11 @@
         </div>
 
         <div class="relative mb-4">
-            <input type="text" id="url-input" placeholder="Dán URL video cần tải xuống (URL, URL, URL, ...)"
-                class="input input-bordered w-full rounded-xl bg-[#FFF8E7] text-[#4A7043] vintage-input pr-10" />
+            <textarea id="url-input" placeholder='Dán URL video cần tải xuống (mỗi URL một dòng)'
+                class="textarea textarea-bordered w-full rounded-xl bg-[#FFF8E7] text-[#4A7043] vintage-input pr-10 min-h-[80px] resize-none" 
+                rows="5"></textarea>
             <button id="clear-input"
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B5A2B] opacity-0 transition-opacity duration-200 hover:text-[#6F4A22]">
+                class="absolute right-3 top-3 text-[#8B5A2B] opacity-0 transition-opacity duration-200 hover:text-[#6F4A22]">
                 <i class="fas fa-times-circle"></i>
             </button>
         </div>
@@ -88,10 +89,10 @@
             </div>
         </div>
         <div
-            class="absolute -bottom-6 left-0 right-0 w-full text-[#8B5A2B] py-1 px-4 text-xs flex justify-center items-center z-50">
+            class="absolute -bottom-6 left-0 right-0 w-full footer-content py-1 px-4 text-xs flex justify-center items-center z-50">
             <div class="flex flex-wrap justify-center items-center gap-3 md:gap-6">
                 <span>Made with <i class="fas fa-heart text-red-500"></i> by Hung & Bros</span>
-                <a href="https://byhung.com" target="_blank"><i class="fas fa-globe mr-1"></i>byhung.com</a>
+                <a href="https://byhung.com" target="_blank" class="footer-link"><i class="fas fa-globe mr-1"></i>byhung.com</a>
                 <span><i class="fas fa-envelope mr-1"></i>hello@byhung.com</span>
             </div>
         </div>

@@ -47,9 +47,7 @@ export class SettingsManager {
 
     // Reset to defaults with confirmation
     resetToDefaults() {
-        if (confirm('Bạn có chắc muốn đặt lại tất cả cài đặt về mặc định?')) {
-            this.resetSettings();
-        }
+        this.resetSettings();
     }
 
     // Create settings UI
@@ -68,29 +66,8 @@ export class SettingsManager {
                     </button>
                 </div>
 
-                <div class="settings-tabs">
-                    <button class="settings-tab active" data-tab="general">
-                        <i class="fas fa-sliders-h mr-1"></i>Tổng quát
-                    </button>
-                    <button class="settings-tab" data-tab="audio">
-                        <i class="fas fa-music mr-1"></i>Âm thanh
-                    </button>
-                    <button class="settings-tab" data-tab="youtube">
-                        <i class="fab fa-youtube mr-1"></i>YouTube
-                    </button>
-                    <button class="settings-tab" data-tab="tiktok">
-                        <i class="fab fa-tiktok mr-1"></i>TikTok
-                    </button>
-                    <button class="settings-tab" data-tab="advanced">
-                        <i class="fas fa-cogs mr-1"></i>Nâng cao
-                    </button>
-                </div>
-
-                <!-- General Tab -->
                 <div class="settings-tab-content active" id="tab-general">
                     <div class="settings-group">
-                        <h3 class="settings-group-title">Cài đặt video</h3>
-                        
                         <div class="settings-field">
                             <label class="settings-label">Chất lượng video:</label>
                             <div class="radio-buttons-group compact" id="videoQuality-group">
@@ -170,13 +147,6 @@ export class SettingsManager {
                         </div>
 
                         <div class="settings-field">
-                            <label class="settings-checkbox">
-                                <input type="checkbox" id="disableMetadata" ${this.settings.disableMetadata ? 'checked' : ''}>
-                                Tắt metadata (tiêu đề, nghệ sĩ, v.v.)
-                            </label>
-                        </div>
-
-                        <div class="settings-field">
                             <label class="settings-label">Kiểu tên file:</label>
                             <div class="radio-buttons-group compact" id="filenameStyle-group">
                                 <label class="radio-button ${this.settings.filenameStyle === 'classic' ? 'active' : ''}" data-value="classic">
@@ -208,102 +178,6 @@ export class SettingsManager {
                                     </div>
                                 </label>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Audio Tab -->
-                <div class="settings-tab-content" id="tab-audio">
-                    <div class="settings-group">
-                        <h3 class="settings-group-title">Cài đặt âm thanh</h3>
-                        
-                        <div class="settings-field">
-                            <label class="settings-label" for="audioFormat">Định dạng âm thanh:</label>
-                            <select id="audioFormat" class="settings-select">
-                                ${this.createOptions('audioFormat')}
-                            </select>
-                        </div>
-
-                        <div class="settings-field">
-                            <label class="settings-label" for="audioBitrate">Bitrate âm thanh:</label>
-                            <select id="audioBitrate" class="settings-select">
-                                ${this.createOptions('audioBitrate')}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- YouTube Tab -->
-                <div class="settings-tab-content" id="tab-youtube">
-                    <div class="settings-group">
-                        <h3 class="settings-group-title">Cài đặt YouTube</h3>
-                        
-                        <div class="settings-field">
-                            <label class="settings-label" for="youtubeVideoCodec">Codec video:</label>
-                            <select id="youtubeVideoCodec" class="settings-select">
-                                ${this.createOptions('youtubeVideoCodec')}
-                            </select>
-                        </div>
-
-                        <div class="settings-field">
-                            <label class="settings-label" for="youtubeDubLang">Ngôn ngữ lồng tiếng:</label>
-                            <input type="text" id="youtubeDubLang" class="settings-input" 
-                                   placeholder="Ví dụ: en, vi, zh-CN" value="${this.settings.youtubeDubLang || ''}">
-                        </div>
-
-                        <div class="settings-field">
-                            <label class="settings-checkbox">
-                                <input type="checkbox" id="youtubeBetterAudio" ${this.settings.youtubeBetterAudio ? 'checked' : ''}>
-                                Ưu tiên âm thanh chất lượng cao
-                            </label>
-                        </div>
-
-                        <div class="settings-field">
-                            <label class="settings-checkbox">
-                                <input type="checkbox" id="youtubeHLS" ${this.settings.youtubeHLS ? 'checked' : ''}>
-                                Sử dụng định dạng HLS
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TikTok Tab -->
-                <div class="settings-tab-content" id="tab-tiktok">
-                    <div class="settings-group">
-                        <h3 class="settings-group-title">Cài đặt TikTok</h3>
-                        
-                        <div class="settings-field">
-                            <label class="settings-checkbox">
-                                <input type="checkbox" id="tiktokFullAudio" ${this.settings.tiktokFullAudio ? 'checked' : ''}>
-                                Tải âm thanh gốc
-                            </label>
-                        </div>
-
-                        <div class="settings-field">
-                            <label class="settings-checkbox">
-                                <input type="checkbox" id="allowH265" ${this.settings.allowH265 ? 'checked' : ''}>
-                                Cho phép video H265/HEVC
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Advanced Tab -->
-                <div class="settings-tab-content" id="tab-advanced">
-                    <div class="settings-group">
-                        <h3 class="settings-group-title">Cài đặt nâng cao</h3>
-                        
-                        <div class="settings-field">
-                            <label class="settings-label" for="apiKey">API Key (tùy chọn):</label>
-                            <input type="text" id="apiKey" class="settings-input" 
-                                   placeholder="Nhập API key của bạn" value="${this.settings.apiKey || ''}">
-                        </div>
-
-                        <div class="settings-field">
-                            <label class="settings-checkbox">
-                                <input type="checkbox" id="convertGif" ${this.settings.convertGif ? 'checked' : ''}>
-                                Chuyển đổi Twitter GIF thành GIF thực
-                            </label>
                         </div>
                     </div>
                 </div>
@@ -402,17 +276,17 @@ export class SettingsManager {
                 button.addEventListener('click', () => {
                     const value = button.dataset.value;
                     const groupId = group.id.replace('-group', '');
-                    
+
                     // Update visual state
                     radioButtons.forEach(rb => rb.classList.remove('active'));
                     button.classList.add('active');
-                    
+
                     // Update hidden radio input
                     const radioInput = button.querySelector('input[type="radio"]');
                     if (radioInput) {
                         radioInput.checked = true;
                     }
-                    
+
                     // Update setting
                     this.updateSetting(groupId, value);
                 });
@@ -472,13 +346,13 @@ export class SettingsManager {
         modal.querySelectorAll('.radio-buttons-group').forEach(group => {
             const groupId = group.id.replace('-group', '');
             const currentValue = this.settings[groupId];
-            
+
             if (currentValue !== undefined) {
                 // Remove active from all buttons
                 group.querySelectorAll('.radio-button').forEach(button => {
                     button.classList.remove('active');
                 });
-                
+
                 // Add active to current value
                 const activeButton = group.querySelector(`[data-value="${currentValue}"]`);
                 if (activeButton) {
