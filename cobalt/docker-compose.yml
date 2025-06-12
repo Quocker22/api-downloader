@@ -16,7 +16,7 @@ services:
         environment:
             # Thay thế bằng URL của instance của bạn
             # nếu không, chức năng tunneling sẽ không hoạt động đúng
-            API_URL: "http://localhost:8002/"
+            API_URL: "https://upload.thtmmo.com/"
 
             # Nếu bạn muốn sử dụng cookies để lấy dữ liệu từ các dịch vụ,
             # bỏ comment dòng dưới & phần volumes
