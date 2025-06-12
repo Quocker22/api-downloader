@@ -16,8 +16,16 @@ export class DownloadManager {
             try {
                 await this.downloadFileWithProgress(url, filename, progressId);
             } catch (streamError) {
-                console.warn('Streaming download failed, trying fallback:', streamError);
-                await this.downloadFileSimple(url, filename, progressId);
+                console.warn('Streaming download failed, trying fallback:', streamError.message);
+                
+                if (streamError.message === 'FALLBACK_NEEDED') {
+                    this.updateProgressUI(progressId, {
+                        status: 'Chuyển sang chế độ đơn giản...',
+                    });
+                    await this.downloadFileSimple(url, filename, progressId);
+                } else {
+                    throw streamError;
+                }
             }
             
         } catch (error) {
@@ -85,10 +93,16 @@ export class DownloadManager {
     async downloadFileWithProgress(url, filename, progressId) {
         try {
             console.log('Starting download:', url);
-            const response = await fetch(url);
             
-            console.log('Response status:', response.status);
-            console.log('Response headers:', [...response.headers.entries()]);
+            // Add CORS headers for cross-origin requests
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'cors',
+                credentials: 'omit',
+                headers: {
+                    'Accept': '*/*',
+                }
+            });
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -106,7 +120,8 @@ export class DownloadManager {
 
             // Check if response has body and supports streaming
             if (!response.body) {
-                throw new Error('Response body is null - cannot stream download');
+                console.warn('Response body is null, falling back to simple download');
+                throw new Error('STREAM_NOT_SUPPORTED');
             }
 
             const reader = response.body.getReader();
@@ -114,8 +129,6 @@ export class DownloadManager {
             let downloaded = 0;
             let startTime = Date.now();
             let lastUpdateTime = startTime;
-
-            console.log('Starting to read chunks...');
 
             // Store download info for cancellation
             this.activeDownloads.set(progressId, {
@@ -126,8 +139,6 @@ export class DownloadManager {
             while (true) {
                 const { done, value } = await reader.read();
                 
-                console.log('Read chunk:', done, value ? value.length : 0, 'bytes');
-                
                 // Check if cancelled
                 const downloadInfo = this.activeDownloads.get(progressId);
                 if (downloadInfo?.cancelled) {
@@ -136,42 +147,48 @@ export class DownloadManager {
                 
                 if (done) break;
                 
-                if (value) {
+                if (value && value.length > 0) {
                     chunks.push(value);
                     downloaded += value.length;
                     
-                    console.log('Downloaded so far:', downloaded, 'bytes');
-                }
-                
-                // Update progress every 100ms to avoid too many updates
-                const currentTime = Date.now();
-                if (currentTime - lastUpdateTime > 100) {
-                    const elapsedTime = (currentTime - startTime) / 1000;
-                    const speed = downloaded / elapsedTime;
-                    
-                    this.updateProgressUI(progressId, {
-                        downloaded,
-                        total,
-                        speed,
-                        percent: total > 0 ? (downloaded / total * 100) : 0
-                    });
-                    
-                    lastUpdateTime = currentTime;
+                    // Update progress every 200ms to avoid too many updates
+                    const currentTime = Date.now();
+                    if (currentTime - lastUpdateTime > 200) {
+                        const elapsedTime = (currentTime - startTime) / 1000;
+                        const speed = downloaded / elapsedTime;
+                        
+                        this.updateProgressUI(progressId, {
+                            downloaded,
+                            total,
+                            speed,
+                            percent: total > 0 ? (downloaded / total * 100) : 0
+                        });
+                        
+                        lastUpdateTime = currentTime;
+                    }
                 }
             }
 
             console.log('Download complete. Total chunks:', chunks.length, 'Total downloaded:', downloaded);
 
+            if (downloaded === 0) {
+                throw new Error('EMPTY_DOWNLOAD');
+            }
+
             // Complete download
             const blob = new Blob(chunks);
             console.log('Created blob size:', blob.size);
+            
+            if (blob.size === 0) {
+                throw new Error('Downloaded file is empty (0 bytes)');
+            }
             
             const downloadUrl = window.URL.createObjectURL(blob);
             
             this.updateProgressUI(progressId, {
                 status: 'Hoàn thành!',
-                downloaded,
-                total: downloaded,
+                downloaded: blob.size,
+                total: blob.size,
                 percent: 100
             });
 
@@ -197,6 +214,13 @@ export class DownloadManager {
 
         } catch (error) {
             console.error('Download error:', error);
+            
+            // If streaming fails, try fallback
+            if (error.message === 'STREAM_NOT_SUPPORTED' || error.message === 'EMPTY_DOWNLOAD') {
+                console.log('Falling back to simple download method');
+                throw new Error('FALLBACK_NEEDED');
+            }
+            
             this.updateProgressUI(progressId, {
                 status: '❌ Lỗi: ' + error.message,
                 showError: true

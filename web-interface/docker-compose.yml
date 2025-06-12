@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+      - "443:443"  # Nếu sử dụng SSL
+    volumes:
+      # Uncomment nếu muốn mount SSL certificates
+      # - ./ssl:/etc/ssl/certs:ro
+      # Uncomment nếu muốn mount custom nginx config
+      # - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    restart: unless-stopped
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: bridge
