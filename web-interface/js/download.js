@@ -1,3 +1,5 @@
+import { formatBytes } from './utils.js';
+
 // Download manager for handling downloads with progress
 export class DownloadManager {
     constructor() {
@@ -304,15 +306,15 @@ export class DownloadManager {
         }
 
         if (data.downloaded !== undefined && downloadedEl) {
-            downloadedEl.textContent = this.formatBytes(data.downloaded);
+            downloadedEl.textContent = formatBytes(data.downloaded);
         }
 
         if (data.total !== undefined && totalEl) {
-            totalEl.textContent = data.total > 0 ? this.formatBytes(data.total) : '-- kB';
+            totalEl.textContent = data.total > 0 ? formatBytes(data.total) : '-- kB';
         }
 
         if (data.speed !== undefined && speedEl) {
-            speedEl.textContent = `${this.formatBytes(data.speed)}/s`;
+            speedEl.textContent = `${formatBytes(data.speed)}/s`;
         }
 
         if (data.showSuccess && cancelBtn && retryBtn) {

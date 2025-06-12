@@ -1146,3 +1146,34 @@ textarea.vintage-input::-webkit-scrollbar-thumb:hover {
     right: 12px;
     transform: none;
 }
+
+/* Download All Button Styles */
+#download-all-btn {
+    transition: all 0.3s ease;
+}
+
+#download-all-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#download-all-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+[data-theme="dark"] #download-all-btn {
+    background-color: var(--secondary-color);
+}
+
+[data-theme="dark"] #download-all-btn:hover {
+    background-color: #4A6A44;
+}
+
+/* Download All Progress Container */
+.download-all-container {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}

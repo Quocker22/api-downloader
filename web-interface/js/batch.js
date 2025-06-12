@@ -1,7 +1,7 @@
 import { ApiService } from './api.js';
 import { DownloadManager } from './download.js';
 import { CONFIG, ERROR_MESSAGES } from './config.js';
-import { sleep } from './utils.js';
+import { sleep, formatBytes } from './utils.js';
 import { SettingsManager } from './settings.js';
 
 // Batch processing manager
@@ -69,8 +69,13 @@ export class BatchProcessor {
                     <h3 class="font-bold text-[#4A7043] text-lg">
                         <i class="fas fa-list mr-2"></i>Xử lý hàng loạt (${urls.length} video)
                     </h3>
-                    <div id="batch-summary" class="text-sm text-[#8B5A2B]">
-                        Đang xử lý...
+                    <div class="flex items-center space-x-3">
+                        <div id="batch-summary" class="text-sm text-[#8B5A2B]">
+                            Đang xử lý...
+                        </div>
+                        <button id="download-all-btn" class="btn btn-sm bg-[#4A7043] text-white hover:bg-[#3A5A35] rounded-lg border-none hidden">
+                            <i class="fas fa-download mr-1"></i>Tải tất cả
+                        </button>
                     </div>
                 </div>
                 <div class="space-y-3">
@@ -104,6 +109,9 @@ export class BatchProcessor {
         `;
 
         downloadResult.innerHTML = batchHTML;
+        
+        // Add download all functionality
+        this.setupDownloadAllButton();
     }
 
     updateItemStatus(itemId, status, message) {
@@ -177,6 +185,7 @@ export class BatchProcessor {
 
     updateSummary() {
         const summaryElement = document.getElementById('batch-summary');
+        const downloadAllBtn = document.getElementById('download-all-btn');
         if (!summaryElement) return;
 
         const total = this.results.length;
@@ -192,6 +201,13 @@ export class BatchProcessor {
                 <span class="text-[#8B5A2B]">Hoàn thành</span>
             </div>
         `;
+
+        // Show download all button if there are successful results
+        if (downloadAllBtn && success > 0) {
+            downloadAllBtn.classList.remove('hidden');
+            downloadAllBtn.textContent = `Tải tất cả (${success})`;
+            downloadAllBtn.innerHTML = `<i class="fas fa-download mr-1"></i>Tải tất cả (${success})`;
+        }
     }
 
     getErrorMessage(error) {
@@ -395,15 +411,15 @@ export class BatchProcessor {
         }
 
         if (data.downloaded !== undefined && downloadedEl) {
-            downloadedEl.textContent = this.formatBytes(data.downloaded);
+            downloadedEl.textContent = formatBytes(data.downloaded);
         }
 
         if (data.total !== undefined && totalEl) {
-            totalEl.textContent = data.total > 0 ? this.formatBytes(data.total) : '-- kB';
+            totalEl.textContent = data.total > 0 ? formatBytes(data.total) : '-- kB';
         }
 
         if (data.speed !== undefined && speedEl) {
-            speedEl.textContent = `${this.formatBytes(data.speed)}/s`;
+            speedEl.textContent = `${formatBytes(data.speed)}/s`;
         }
 
         if (data.showSuccess && cancelBtn && retryBtn) {
@@ -459,13 +475,261 @@ export class BatchProcessor {
         }
     }
 
-    formatBytes(bytes) {
-        if (bytes === 0) return '0 B';
+    setupDownloadAllButton() {
+        const downloadAllBtn = document.getElementById('download-all-btn');
+        if (!downloadAllBtn) return;
+
+        downloadAllBtn.addEventListener('click', () => {
+            this.downloadAll();
+        });
+    }
+
+    async downloadAll() {
+        const successfulResults = this.results.filter(r => 
+            r.status === 'success' && r.result && r.result.status !== 'error'
+        );
+
+        if (successfulResults.length === 0) {
+            alert('Không có video nào để tải xuống!');
+            return;
+        }
+
+        const downloadAllBtn = document.getElementById('download-all-btn');
+        if (downloadAllBtn) {
+            downloadAllBtn.disabled = true;
+            downloadAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Đang tải...';
+        }
+
+        // Create a container for all download progress
+        this.createDownloadAllUI(successfulResults);
+
+        // Start downloading all files with a small delay between each
+        for (let i = 0; i < successfulResults.length; i++) {
+            const result = successfulResults[i];
+            let downloadData = result.result;
+
+            // Handle picker results
+            if (downloadData.status === 'picker' && downloadData.picker && downloadData.picker.length > 0) {
+                downloadData = downloadData.picker[0];
+            }
+
+            if (downloadData.url) {
+                const progressId = `download-all-${i}`;
+                this.startDownloadAllItem(downloadData.url, downloadData.filename, progressId, i + 1);
+                
+                // Small delay between downloads to avoid overwhelming the server
+                if (i < successfulResults.length - 1) {
+                    await sleep(500);
+                }
+            }
+        }
+
+        // Re-enable button after all downloads started
+        if (downloadAllBtn) {
+            downloadAllBtn.disabled = false;
+            downloadAllBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Đã bắt đầu tải';
+            setTimeout(() => {
+                downloadAllBtn.innerHTML = '<i class="fas fa-download mr-1"></i>Tải tất cả';
+            }, 3000);
+        }
+    }
+
+    createDownloadAllUI(successfulResults) {
+        const downloadResult = document.getElementById('download-result');
         
-        const k = 1024;
-        const sizes = ['B', 'kB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        let downloadAllHTML = `
+            <div class="bg-[#EDE4E0] p-4 rounded-xl border border-[#8B5A2B] mb-4">
+                <div class="flex items-center mb-4">
+                    <h3 class="font-bold text-[#4A7043] text-lg">
+                        <i class="fas fa-cloud-download-alt mr-2"></i>Tải xuống tất cả (${successfulResults.length} file)
+                    </h3>
+                </div>
+                <div class="space-y-2" id="download-all-container">
+        `;
+
+        successfulResults.forEach((result, index) => {
+            let downloadData = result.result;
+            if (downloadData.status === 'picker' && downloadData.picker && downloadData.picker.length > 0) {
+                downloadData = downloadData.picker[0];
+            }
+
+            downloadAllHTML += `
+                <div id="download-all-${index}" class="bg-[#FFF8E7] p-3 rounded-lg border border-[#8B5A2B] border-opacity-30">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center min-w-0 flex-1">
+                            <div class="mr-2 flex-shrink-0">
+                                <i class="fas fa-clock text-[#8B5A2B]"></i>
+                            </div>
+                            <span class="font-medium text-[#4A7043] text-sm truncate" title="${downloadData.filename || `Video ${index + 1}`}">${downloadData.filename || `Video ${index + 1}`}</span>
+                        </div>
+                        <span id="download-all-${index}-percent" class="text-sm text-[#8B5A2B] flex-shrink-0 ml-2">0%</span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="flex justify-between text-xs text-[#8B5A2B] mb-1">
+                            <span id="download-all-${index}-status">Chờ tải...</span>
+                            <span id="download-all-${index}-speed">-- kB/s</span>
+                        </div>
+                        <div class="w-full bg-[#E5D5C8] rounded-full h-1.5">
+                            <div id="download-all-${index}-bar" class="bg-[#8B5A2B] h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between text-xs text-[#8B5A2B]">
+                        <span id="download-all-${index}-downloaded">0 kB</span>
+                        <span id="download-all-${index}-total">-- kB</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        downloadAllHTML += `
+                </div>
+            </div>
+        `;
+
+        // Insert before existing batch UI
+        const existingBatch = downloadResult.querySelector('.bg-\\[\\#FFF8E7\\]');
+        if (existingBatch) {
+            existingBatch.insertAdjacentHTML('beforebegin', downloadAllHTML);
+        } else {
+            downloadResult.innerHTML = downloadAllHTML + downloadResult.innerHTML;
+        }
+    }
+
+    async startDownloadAllItem(url, filename, progressId, itemNumber) {
+        try {
+            // Update status icon
+            const statusIcon = document.querySelector(`#${progressId} .fas`);
+            if (statusIcon) {
+                statusIcon.className = 'fas fa-spinner fa-spin text-[#F4A261]';
+            }
+
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const contentLength = response.headers.get('content-length');
+            const total = contentLength ? parseInt(contentLength, 10) : 0;
+            
+            this.updateDownloadAllProgressUI(progressId, {
+                status: 'Đang tải xuống...',
+                total: total
+            });
+
+            const reader = response.body.getReader();
+            const chunks = [];
+            let downloaded = 0;
+            let startTime = Date.now();
+            let lastUpdateTime = startTime;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                
+                if (done) break;
+                
+                chunks.push(value);
+                downloaded += value.length;
+                
+                // Update progress every 300ms for download all (less frequent)
+                const currentTime = Date.now();
+                if (currentTime - lastUpdateTime > 300) {
+                    const elapsedTime = (currentTime - startTime) / 1000;
+                    const speed = downloaded / elapsedTime;
+                    
+                    this.updateDownloadAllProgressUI(progressId, {
+                        downloaded,
+                        total,
+                        speed,
+                        percent: total > 0 ? (downloaded / total * 100) : 0
+                    });
+                    
+                    lastUpdateTime = currentTime;
+                }
+            }
+
+            // Complete download
+            const blob = new Blob(chunks);
+            const downloadUrl = window.URL.createObjectURL(blob);
+            
+            this.updateDownloadAllProgressUI(progressId, {
+                status: 'Hoàn thành!',
+                downloaded,
+                total: downloaded,
+                percent: 100
+            });
+
+            // Auto download
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename || `video-${itemNumber}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Cleanup
+            window.URL.revokeObjectURL(downloadUrl);
+            
+            // Show success message
+            setTimeout(() => {
+                this.updateDownloadAllProgressUI(progressId, {
+                    status: '✅ Thành công!',
+                    showSuccess: true
+                });
+            }, 500);
+
+        } catch (error) {
+            this.updateDownloadAllProgressUI(progressId, {
+                status: '❌ Lỗi: ' + error.message,
+                showError: true
+            });
+        }
+    }
+
+    updateDownloadAllProgressUI(progressId, data) {
+        const statusEl = document.getElementById(`${progressId}-status`);
+        const percentEl = document.getElementById(`${progressId}-percent`);
+        const barEl = document.getElementById(`${progressId}-bar`);
+        const downloadedEl = document.getElementById(`${progressId}-downloaded`);
+        const totalEl = document.getElementById(`${progressId}-total`);
+        const speedEl = document.getElementById(`${progressId}-speed`);
+
+        if (data.status && statusEl) {
+            statusEl.textContent = data.status;
+        }
+
+        if (data.percent !== undefined && percentEl && barEl) {
+            const percent = Math.round(data.percent);
+            percentEl.textContent = `${percent}%`;
+            barEl.style.width = `${percent}%`;
+        }
+
+        if (data.downloaded !== undefined && downloadedEl) {
+            downloadedEl.textContent = formatBytes(data.downloaded);
+        }
+
+        if (data.total !== undefined && totalEl) {
+            totalEl.textContent = data.total > 0 ? formatBytes(data.total) : '-- kB';
+        }
+
+        if (data.speed !== undefined && speedEl) {
+            speedEl.textContent = `${formatBytes(data.speed)}/s`;
+        }
+
+        if (data.showSuccess) {
+            const statusIcon = document.querySelector(`#${progressId} .fas`);
+            if (statusIcon) {
+                statusIcon.className = 'fas fa-check-circle text-green-600';
+            }
+        }
+
+        if (data.showError) {
+            const statusIcon = document.querySelector(`#${progressId} .fas`);
+            if (statusIcon) {
+                statusIcon.className = 'fas fa-exclamation-circle text-red-600';
+            }
+        }
     }
 }
