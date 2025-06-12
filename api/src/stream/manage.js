@@ -103,7 +103,7 @@ export function getInternalTunnel(id) {
 
 export function getInternalTunnelFromURL(url) {
     url = new URL(url);
-    if (url.hostname !== 'getlink.byhung.com') {
+    if (url.hostname !== 'upload.thtmmo.com') {
         return;
     }
 
@@ -142,7 +142,7 @@ export function createInternalStream(url, obj = {}) {
         transplant: obj.transplant
     });
 
-    let streamLink = new URL('/itunnel', `http://getlink.byhung.com:${env.tunnelPort}`);
+    let streamLink = new URL('/itunnel', `http://upload.thtmmo.com:${env.tunnelPort}`);
     streamLink.searchParams.set('id', streamID);
 
     const cleanup = () => {
@@ -157,7 +157,7 @@ export function createInternalStream(url, obj = {}) {
 
 function getInternalTunnelId(url) {
     url = new URL(url);
-    if (url.hostname !== 'getlink.byhung.com') {
+    if (url.hostname !== 'upload.thtmmo.com') {
         return;
     }
 

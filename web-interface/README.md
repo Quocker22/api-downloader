@@ -323,3 +323,4 @@ app.settingsManager.resetToDefaults();
 
 **FROM DOWNLOADER** - Enhanced Cobalt Web Interface  
 Version 2.0 with full API support and modern UI/UX
+# down-easy
