@@ -12,12 +12,17 @@ services:
       - "127.0.0.1:5001:9000"
     environment:
       API_URL: ${API_URL:-https://taivideo.websites.com.vn}
+      # YouTube session generator for bypassing bot detection
+      YOUTUBE_SESSION_SERVER: http://yt-session:8080/
       # Thêm các biến môi trường khác nếu cần
       # COOKIE_PATH: "/cookies.json"
       # TURNSTILE_SITEKEY: ""
       # TURNSTILE_SECRET: ""
     # volumes:
     #   - ./cookies.json:/cookies.json:ro
+    depends_on:
+      yt-session:
+        condition: service_healthy
     labels:
       - com.centurylinklabs.watchtower.scope=cobalt
     networks:
@@ -28,6 +33,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # YouTube Session Generator - Bypasses YouTube bot detection
+  yt-session:
+    image: ghcr.io/imputnet/yt-session-generator:latest
+    container_name: yt-session-generator
+    init: true
+    restart: unless-stopped
+    # No need to expose port to host - only accessed internally by cobalt-api
+    networks:
+      - cobalt-network
+    labels:
+      - com.centurylinklabs.watchtower.scope=cobalt
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
 
   # Web Interface Frontend
   cobalt-web:
