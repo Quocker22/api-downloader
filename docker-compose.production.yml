@@ -36,10 +36,12 @@ services:
 
   # YouTube Session Generator - Bypasses YouTube bot detection
   yt-session:
-    image: ghcr.io/imputnet/yt-session-generator:latest
+    image: ghcr.io/imputnet/yt-session-generator:webserver
     container_name: yt-session-generator
     init: true
     restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
     environment:
       # Required when running as root in Docker
       NO_SANDBOX: "true"
