@@ -23,16 +23,23 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Detect docker compose command (v1 or v2)
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    echo -e "${RED}Docker Compose is not installed!${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}Using: $DOCKER_COMPOSE${NC}"
+
 # Step 1: Check prerequisites
 echo -e "\n${YELLOW}[1/8] Checking prerequisites...${NC}"
 
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}Docker is not installed!${NC}"
-    exit 1
-fi
-
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-    echo -e "${RED}Docker Compose is not installed!${NC}"
     exit 1
 fi
 
@@ -101,16 +108,16 @@ if [ ! -f ".env.production" ]; then
 fi
 
 # Stop existing containers if any
-docker compose -f docker-compose.production.yml down 2>/dev/null || true
+$DOCKER_COMPOSE -f docker-compose.production.yml down 2>/dev/null || true
 
 # Pull latest images
-docker compose -f docker-compose.production.yml pull
+$DOCKER_COMPOSE -f docker-compose.production.yml pull
 
 # Build web interface
-docker compose -f docker-compose.production.yml build cobalt-web
+$DOCKER_COMPOSE -f docker-compose.production.yml build cobalt-web
 
 # Start containers
-docker compose -f docker-compose.production.yml up -d
+$DOCKER_COMPOSE -f docker-compose.production.yml up -d
 
 echo -e "${GREEN}✓ Docker containers started${NC}"
 
@@ -124,7 +131,7 @@ if docker ps | grep -q "cobalt-api"; then
     echo -e "${GREEN}✓ API container is running${NC}"
 else
     echo -e "${RED}✗ API container failed to start!${NC}"
-    docker compose -f docker-compose.production.yml logs cobalt-api
+    $DOCKER_COMPOSE -f docker-compose.production.yml logs cobalt-api
     exit 1
 fi
 
@@ -132,7 +139,7 @@ if docker ps | grep -q "cobalt-web"; then
     echo -e "${GREEN}✓ Web container is running${NC}"
 else
     echo -e "${RED}✗ Web container failed to start!${NC}"
-    docker compose -f docker-compose.production.yml logs cobalt-web
+    $DOCKER_COMPOSE -f docker-compose.production.yml logs cobalt-web
     exit 1
 fi
 
@@ -182,10 +189,10 @@ echo -e "\n3. Test your sites:"
 echo -e "   - API: http://taivideo.websites.com.vn"
 echo -e "   - Web: http://download.websites.com.vn"
 echo -e "\n4. View logs:"
-echo -e "   ${GREEN}docker compose -f docker-compose.production.yml logs -f${NC}"
+echo -e "   ${GREEN}$DOCKER_COMPOSE -f docker-compose.production.yml logs -f${NC}"
 echo -e "\n5. Manage containers:"
-echo -e "   Stop:    ${GREEN}docker compose -f docker-compose.production.yml stop${NC}"
-echo -e "   Start:   ${GREEN}docker compose -f docker-compose.production.yml start${NC}"
-echo -e "   Restart: ${GREEN}docker compose -f docker-compose.production.yml restart${NC}"
+echo -e "   Stop:    ${GREEN}$DOCKER_COMPOSE -f docker-compose.production.yml stop${NC}"
+echo -e "   Start:   ${GREEN}$DOCKER_COMPOSE -f docker-compose.production.yml start${NC}"
+echo -e "   Restart: ${GREEN}$DOCKER_COMPOSE -f docker-compose.production.yml restart${NC}"
 
 echo -e "\n${GREEN}========================================${NC}"
