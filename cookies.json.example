@@ -1,0 +1,18 @@
+[
+  {
+    "domain": ".youtube.com",
+    "path": "/",
+    "secure": true,
+    "expiry": 1735689600,
+    "name": "VISITOR_INFO1_LIVE",
+    "value": "REPLACE_WITH_YOUR_VALUE"
+  },
+  {
+    "domain": ".youtube.com",
+    "path": "/",
+    "secure": true,
+    "expiry": 1735689600,
+    "name": "PREF",
+    "value": "REPLACE_WITH_YOUR_VALUE"
+  }
+]

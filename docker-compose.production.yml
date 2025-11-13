@@ -12,17 +12,18 @@ services:
       - "127.0.0.1:5001:9000"
     environment:
       API_URL: ${API_URL:-https://taivideo.websites.com.vn}
-      # YouTube session generator for bypassing bot detection
-      YOUTUBE_SESSION_SERVER: http://yt-session:8080/
+      # YouTube cookies for bypassing bot detection (Option C)
+      COOKIE_PATH: "/cookies.json"
+      # YouTube session generator (Option A - currently disabled due to VPS IP blocking)
+      # YOUTUBE_SESSION_SERVER: http://yt-session:8080/
       # Thêm các biến môi trường khác nếu cần
-      # COOKIE_PATH: "/cookies.json"
       # TURNSTILE_SITEKEY: ""
       # TURNSTILE_SECRET: ""
-    # volumes:
-    #   - ./cookies.json:/cookies.json:ro
-    depends_on:
-      yt-session:
-        condition: service_healthy
+    volumes:
+      - ./cookies.json:/cookies.json:ro
+    # depends_on:
+    #   yt-session:
+    #     condition: service_healthy
     labels:
       - com.centurylinklabs.watchtower.scope=cobalt
     networks:
@@ -34,28 +35,28 @@ services:
       retries: 3
       start_period: 40s
 
-  # YouTube Session Generator - Bypasses YouTube bot detection
-  yt-session:
-    image: ghcr.io/imputnet/yt-session-generator:webserver
-    container_name: yt-session-generator
-    init: true
-    restart: unless-stopped
-    cap_add:
-      - SYS_ADMIN
-    environment:
-      # Required when running as root in Docker
-      NO_SANDBOX: "true"
-    # No need to expose port to host - only accessed internally by cobalt-api
-    networks:
-      - cobalt-network
-    labels:
-      - com.centurylinklabs.watchtower.scope=cobalt
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/"]
-      interval: 60s
-      timeout: 10s
-      retries: 5
-      start_period: 180s
+  # YouTube Session Generator - Option A (Disabled - not working on this VPS)
+  # Reason: VPS IP is blocked by YouTube, causing timeout errors
+  # Using Option C (cookies.json) instead
+  # yt-session:
+  #   image: ghcr.io/imputnet/yt-session-generator:webserver
+  #   container_name: yt-session-generator
+  #   init: true
+  #   restart: unless-stopped
+  #   cap_add:
+  #     - SYS_ADMIN
+  #   environment:
+  #     NO_SANDBOX: "true"
+  #   networks:
+  #     - cobalt-network
+  #   labels:
+  #     - com.centurylinklabs.watchtower.scope=cobalt
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/"]
+  #     interval: 60s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 180s
 
   # Web Interface Frontend
   cobalt-web:
