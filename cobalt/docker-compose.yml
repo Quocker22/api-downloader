@@ -1,6 +1,6 @@
 services:
     cobalt:
-        image: ghcr.io/imputnet/cobalt:11
+        image: ghcr.io/imputnet/cobalt:latest
 
         init: true
         read_only: true
@@ -16,7 +16,8 @@ services:
         environment:
             # Thay thế bằng URL của instance của bạn
             # nếu không, chức năng tunneling sẽ không hoạt động đúng
-            API_URL: "https://upload.thtmmo.com/"
+            # API_URL: "https://upload.thtmmo.com/"
+            API_URL: "http://localhost:8002/"
 
             # Nếu bạn muốn sử dụng cookies để lấy dữ liệu từ các dịch vụ,
             # bỏ comment dòng dưới & phần volumes

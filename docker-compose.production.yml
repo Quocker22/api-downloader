@@ -1,0 +1,74 @@
+version: '3.9'
+
+services:
+  # Cobalt API Backend
+  cobalt-api:
+    image: ghcr.io/imputnet/cobalt:latest
+    container_name: cobalt-api
+    init: true
+    read_only: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5001:9000"
+    environment:
+      API_URL: ${API_URL:-https://taivideo.websites.com.vn}
+      # Thêm các biến môi trường khác nếu cần
+      # COOKIE_PATH: "/cookies.json"
+      # TURNSTILE_SITEKEY: ""
+      # TURNSTILE_SECRET: ""
+    # volumes:
+    #   - ./cookies.json:/cookies.json:ro
+    labels:
+      - com.centurylinklabs.watchtower.scope=cobalt
+    networks:
+      - cobalt-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Web Interface Frontend
+  cobalt-web:
+    build:
+      context: ./web-interface
+      dockerfile: Dockerfile
+    container_name: cobalt-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5002:80"
+    environment:
+      NGINX_HOST: ${WEB_DOMAIN:-download.websites.com.vn}
+      NGINX_PORT: 80
+      API_ENDPOINT: ${API_URL:-https://taivideo.websites.com.vn}
+    depends_on:
+      cobalt-api:
+        condition: service_healthy
+    labels:
+      - com.centurylinklabs.watchtower.scope=cobalt
+    networks:
+      - cobalt-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Watchtower - Auto update containers
+  watchtower:
+    image: ghcr.io/containrrr/watchtower
+    container_name: cobalt-watchtower
+    restart: unless-stopped
+    command: --cleanup --scope cobalt --interval 900 --include-restarting
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - com.centurylinklabs.watchtower.scope=cobalt
+    networks:
+      - cobalt-network
+
+networks:
+  cobalt-network:
+    driver: bridge
+    name: cobalt-network
