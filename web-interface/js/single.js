@@ -40,7 +40,7 @@ export class SingleProcessor {
             this.handleApiResponse(data);
         } catch (error) {
             this.hideLoading();
-            this.showError(`Không thể kết nối đến API Cobalt: ${error.message}. Vui lòng đảm bảo API đang chạy.`);
+            this.showError(`Không thể kết nối : ${error.message}. đường dẫn không hợp lệ hoặc không hỗ trợ`);
             console.error('Fetch error:', error);
         }
     }
