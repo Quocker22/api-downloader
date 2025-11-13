@@ -12,6 +12,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Replace config.js with production config for build
+RUN if [ -f js/config.production.js ]; then \
+        cp js/config.production.js js/config.js; \
+    fi
+
 # Build the application
 RUN npm run build
 
