@@ -94,22 +94,23 @@ Thêm vào `<head>` của index.html:
 <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" />
 ```
 
-### 3. Google Analytics (Optional)
+### 3. Google Analytics 4 (GA4) ✅ Integrated
 
-**Setup:**
+**Status:** ✅ GA4 tracking code đã được tích hợp vào `web-interface/index.html`
+
+**Setup Guide:** Xem `GOOGLE_ANALYTICS_SETUP.md` để:
 1. Tạo GA4 property
-2. Thêm tracking code vào index.html:
+2. Lấy Measurement ID
+3. Thay thế `G-XXXXXXXXXX` trong code
+4. Deploy và verify
 
-```html
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
-</script>
-```
+**Features:**
+- ✅ Page view tracking
+- ✅ Custom event: analyze_button_click
+- ✅ Enhanced measurement ready
+- ✅ Real-time reports
+
+**Next:** Replace placeholder `G-XXXXXXXXXX` with your actual Measurement ID
 
 ### 4. Bing Webmaster Tools
 
