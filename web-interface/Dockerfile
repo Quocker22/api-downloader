@@ -22,7 +22,8 @@ FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# For production, use nginx.conf.production
+COPY nginx.conf.production /etc/nginx/conf.d/default.conf
 
 # Create a simple index.html if it doesn't exist (fallback)
 RUN test -f /usr/share/nginx/html/index.html || echo '<h1>App not built properly</h1>' > /usr/share/nginx/html/index.html

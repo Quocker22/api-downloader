@@ -275,6 +275,18 @@ export class BatchProcessor {
 
     async downloadWithProgressInBatch(url, filename, progressId) {
         try {
+            // Check if URL is external
+            if (this.isExternalUrl(url)) {
+                console.log('External URL in batch, using direct download');
+                this.downloadDirect(url, filename);
+                this.updateBatchProgressUI(progressId, {
+                    status: '✅ Tải xuống trực tiếp',
+                    percent: 100,
+                    showSuccess: true
+                });
+                return;
+            }
+
             const response = await fetch(url);
             
             if (!response.ok) {
@@ -605,6 +617,18 @@ export class BatchProcessor {
                 statusIcon.className = 'fas fa-spinner fa-spin text-[#F4A261]';
             }
 
+            // Check if URL is external
+            if (this.isExternalUrl(url)) {
+                console.log('External URL in download all, using direct download');
+                this.downloadDirect(url, filename);
+                this.updateDownloadAllProgressUI(progressId, {
+                    status: '✅ Tải xuống trực tiếp',
+                    percent: 100,
+                    showSuccess: true
+                });
+                return;
+            }
+
             const response = await fetch(url);
             
             if (!response.ok) {
@@ -731,5 +755,31 @@ export class BatchProcessor {
                 statusIcon.className = 'fas fa-exclamation-circle text-red-600';
             }
         }
+    }
+
+    isExternalUrl(url) {
+        try {
+            const urlObj = new URL(url);
+            const currentHost = window.location.hostname;
+
+            // Check if URL is from localhost/127.0.0.1 or same origin
+            return urlObj.hostname !== currentHost &&
+                   urlObj.hostname !== 'localhost' &&
+                   urlObj.hostname !== '127.0.0.1';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    downloadDirect(url, filename) {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = filename || 'video.mp4';
+        downloadLink.target = '_blank';
+        downloadLink.rel = 'noopener noreferrer';
+        downloadLink.style.display = 'none';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
     }
 }

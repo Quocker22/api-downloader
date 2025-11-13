@@ -10,16 +10,26 @@ export class DownloadManager {
     async downloadWithProgress(url, filename) {
         try {
             console.log('Bắt đầu tải xuống với progress:', url);
-            
-            // Create progress UI
+
+            // Check if URL is external (not localhost/same origin)
+            const isExternal = this.isExternalUrl(url);
+
+            if (isExternal) {
+                console.log('External URL detected, using direct download');
+                this.downloadDirect(url, filename);
+                this.showDirectDownloadMessage(filename);
+                return;
+            }
+
+            // Create progress UI for local/tunnel URLs
             const progressId = this.createProgressUI(url, filename);
-            
+
             // Try streaming download first, fallback to simple download
             try {
                 await this.downloadFileWithProgress(url, filename, progressId);
             } catch (streamError) {
                 console.warn('Streaming download failed, trying fallback:', streamError.message);
-                
+
                 if (streamError.message === 'FALLBACK_NEEDED') {
                     this.updateProgressUI(progressId, {
                         status: 'Chuyển sang chế độ đơn giản...',
@@ -29,11 +39,41 @@ export class DownloadManager {
                     throw streamError;
                 }
             }
-            
+
         } catch (error) {
             console.error('Lỗi tải xuống:', error);
             this.showDownloadError(error.message);
         }
+    }
+
+    isExternalUrl(url) {
+        try {
+            const urlObj = new URL(url);
+            const currentHost = window.location.hostname;
+
+            // Check if URL is from localhost/127.0.0.1 or same origin
+            return urlObj.hostname !== currentHost &&
+                   urlObj.hostname !== 'localhost' &&
+                   urlObj.hostname !== '127.0.0.1';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    showDirectDownloadMessage(filename) {
+        const downloadResult = document.getElementById('download-result');
+        downloadResult.innerHTML = `
+            <div class="bg-[#FFF8E7] p-4 rounded-xl border border-[#4A7043] mb-4">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-check-circle text-[#4A7043] mr-2 text-xl"></i>
+                    <span class="font-bold text-[#4A7043]">Đang tải xuống</span>
+                </div>
+                <p class="text-sm text-[#8B5A2B]">
+                    File <strong>${filename || 'video'}</strong> đang được tải xuống trực tiếp.
+                    Vui lòng kiểm tra trình quản lý tải xuống của trình duyệt.
+                </p>
+            </div>
+        `;
     }
 
     createProgressUI(url, filename) {
@@ -411,6 +451,8 @@ export class DownloadManager {
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
         downloadLink.download = filename || 'video.mp4';
+        downloadLink.target = '_blank';
+        downloadLink.rel = 'noopener noreferrer';
         downloadLink.style.display = 'none';
         document.body.appendChild(downloadLink);
         downloadLink.click();
