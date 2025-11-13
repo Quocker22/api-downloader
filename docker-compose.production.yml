@@ -40,6 +40,9 @@ services:
     container_name: yt-session-generator
     init: true
     restart: unless-stopped
+    environment:
+      # Required when running as root in Docker
+      NO_SANDBOX: "true"
     # No need to expose port to host - only accessed internally by cobalt-api
     networks:
       - cobalt-network
