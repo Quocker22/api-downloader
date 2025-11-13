@@ -40,7 +40,7 @@ export class SingleProcessor {
             this.handleApiResponse(data);
         } catch (error) {
             this.hideLoading();
-            this.showError(`Không thể kết nối : ${error.message}. đường dẫn không hợp lệ hoặc không hỗ trợ`);
+            this.showError(`Đường dẫn không hợp lệ hoặc không hỗ trợ.`);
             console.error('Fetch error:', error);
         }
     }
