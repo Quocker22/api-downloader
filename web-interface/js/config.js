@@ -1,7 +1,9 @@
 // Configuration and constants
 export const CONFIG = {
-    // API_URL: 'https://upload.thtmmo.com/',
-    API_URL: 'http://localhost:8002/',
+    // API URLs are now relative paths, routed by Nginx
+    // YouTube: /api/youtube → ytdlp-service:5003
+    // Others: /api/ → cobalt-api:9000
+    API_URL: '/api/',  // Base URL (relative path)
     BATCH_DELAY: 1000, // 1 second delay between batch requests
     SUPPORTED_PLATFORMS: [
         { name: 'YouTube', icon: 'fab fa-youtube' },

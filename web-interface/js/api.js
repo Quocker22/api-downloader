@@ -17,31 +17,69 @@ export class ApiService {
         this.authToken = null;
     }
 
+    // Detect if URL is YouTube
+    isYouTubeUrl(url) {
+        try {
+            const urlObj = new URL(url);
+            const hostname = urlObj.hostname.toLowerCase();
+
+            return hostname.includes('youtube.com') ||
+                   hostname.includes('youtu.be') ||
+                   hostname.includes('youtube-nocookie.com');
+        } catch (e) {
+            // If URL parsing fails, check with simple string match
+            return url.includes('youtube.com') || url.includes('youtu.be');
+        }
+    }
+
     // Process URL with options
     async processUrl(url, options = {}) {
-        // Valid API parameters according to Cobalt API schema
-        const validParams = [
-            'url', 'videoQuality', 'downloadMode', 'filenameStyle'
-        ];
+        // Detect if this is a YouTube URL
+        const isYouTube = this.isYouTubeUrl(url);
 
-        // Merge with default options
-        const allOptions = {
-            ...CONFIG.DEFAULT_OPTIONS,
-            ...options
-        };
+        // Choose endpoint based on service
+        let apiEndpoint;
+        let requestData;
 
-        // Build request data with only valid parameters
-        const requestData = { url };
+        if (isYouTube) {
+            // Use yt-dlp service for YouTube
+            console.log('🎬 YouTube URL detected, routing to yt-dlp service');
+            apiEndpoint = '/api/youtube';
 
-        // Add only valid parameters with non-empty values
-        Object.keys(allOptions).forEach(key => {
-            if (validParams.includes(key)) {
-                const value = allOptions[key];
-                if (value !== '' && value !== null && value !== undefined) {
-                    requestData[key] = value;
+            // yt-dlp service expects: { url, quality }
+            requestData = {
+                url: url,
+                quality: options.videoQuality || '720'
+            };
+        } else {
+            // Use Cobalt API for other services
+            console.log('🌐 Non-YouTube URL, routing to Cobalt API');
+            apiEndpoint = '/api/';
+
+            // Valid API parameters according to Cobalt API schema
+            const validParams = [
+                'url', 'videoQuality', 'downloadMode', 'filenameStyle'
+            ];
+
+            // Merge with default options
+            const allOptions = {
+                ...CONFIG.DEFAULT_OPTIONS,
+                ...options
+            };
+
+            // Build request data with only valid parameters
+            requestData = { url };
+
+            // Add only valid parameters with non-empty values
+            Object.keys(allOptions).forEach(key => {
+                if (validParams.includes(key)) {
+                    const value = allOptions[key];
+                    if (value !== '' && value !== null && value !== undefined) {
+                        requestData[key] = value;
+                    }
                 }
-            }
-        });
+            });
+        }
 
         const headers = {
             'Accept': 'application/json',
@@ -49,12 +87,15 @@ export class ApiService {
             'Origin': window.location.origin
         };
 
-        // Add authentication if available
-        if (this.authToken) {
+        // Add authentication if available (only for Cobalt API)
+        if (this.authToken && !isYouTube) {
             headers['Authorization'] = this.authToken;
         }
 
-        const response = await fetch(this.baseUrl, {
+        console.log('📤 Sending request to:', apiEndpoint);
+        console.log('📦 Request data:', requestData);
+
+        const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers,
             body: JSON.stringify(requestData)
@@ -70,6 +111,7 @@ export class ApiService {
         }
 
         const data = await response.json();
+        console.log('📥 Response data:', data);
         return data;
     }
 
