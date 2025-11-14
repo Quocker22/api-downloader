@@ -17,7 +17,7 @@ export class DownloadManager {
             if (isExternal) {
                 console.log('External URL detected, using direct download');
                 this.downloadDirect(url, filename);
-                this.showDirectDownloadMessage(filename);
+                this.showDirectDownloadMessage(filename, url);
                 return;
             }
 
@@ -51,27 +51,43 @@ export class DownloadManager {
             const urlObj = new URL(url);
             const currentHost = window.location.hostname;
 
-            // Check if URL is from localhost/127.0.0.1 or same origin
-            return urlObj.hostname !== currentHost &&
-                   urlObj.hostname !== 'localhost' &&
-                   urlObj.hostname !== '127.0.0.1';
+            // Check if URL is from external sources (YouTube, Google Video, etc.)
+            const isGoogleVideo = urlObj.hostname.includes('googlevideo.com');
+            const isYouTube = urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
+            const isDifferentOrigin = urlObj.hostname !== currentHost &&
+                                     urlObj.hostname !== 'localhost' &&
+                                     urlObj.hostname !== '127.0.0.1';
+
+            return isGoogleVideo || isYouTube || isDifferentOrigin;
         } catch (e) {
             return false;
         }
     }
 
-    showDirectDownloadMessage(filename) {
+    showDirectDownloadMessage(filename, url) {
         const downloadResult = document.getElementById('download-result');
+        const isYouTubeUrl = url && url.includes('googlevideo.com');
+
         downloadResult.innerHTML = `
             <div class="bg-[#FFF8E7] p-4 rounded-xl border border-[#4A7043] mb-4">
                 <div class="flex items-center mb-2">
                     <i class="fas fa-check-circle text-[#4A7043] mr-2 text-xl"></i>
-                    <span class="font-bold text-[#4A7043]">Đang tải xuống</span>
+                    <span class="font-bold text-[#4A7043]">Video đã sẵn sàng</span>
                 </div>
+                ${isYouTubeUrl ? `
+                <p class="text-sm text-[#8B5A2B] mb-3">
+                    <strong>YouTube video</strong> sẽ mở trong tab mới. Click chuột phải và chọn <strong>"Save video as..."</strong> để tải xuống.
+                </p>
+                <div class="bg-[#E5D5C8] p-3 rounded-lg text-xs text-[#6F4A22]">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <strong>Lưu ý:</strong> YouTube URLs expire sau vài giờ. Nếu không tải được, hãy phân tích lại URL.
+                </div>
+                ` : `
                 <p class="text-sm text-[#8B5A2B]">
                     File <strong>${filename || 'video'}</strong> đang được tải xuống trực tiếp.
                     Vui lòng kiểm tra trình quản lý tải xuống của trình duyệt.
                 </p>
+                `}
             </div>
         `;
     }
@@ -450,12 +466,22 @@ export class DownloadManager {
     downloadDirect(url, filename) {
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
-        downloadLink.download = filename || 'video.mp4';
+
+        // For YouTube/Google Video URLs, don't use download attribute (causes zero byte)
+        // Just open in new tab and let browser handle it
+        const isYouTubeUrl = url.includes('googlevideo.com');
+
+        if (!isYouTubeUrl) {
+            downloadLink.download = filename || 'video.mp4';
+        }
+
         downloadLink.target = '_blank';
         downloadLink.rel = 'noopener noreferrer';
         downloadLink.style.display = 'none';
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
+
+        console.log(`Direct download initiated: ${isYouTubeUrl ? 'YouTube URL (new tab)' : 'Direct download'}`);
     }
 }
