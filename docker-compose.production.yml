@@ -94,7 +94,7 @@ services:
     ports:
       - "127.0.0.1:5003:5003"
     volumes:
-      - ./ytdlp-service/cookies.txt:/app/cookies.txt:ro
+      - ./ytdlp-service/cookies.txt:/app/cookies.txt
     networks:
       - cobalt-network
     healthcheck:
