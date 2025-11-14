@@ -32,6 +32,40 @@ export class ApiService {
         }
     }
 
+    // Clean YouTube URL - only keep video ID parameter
+    cleanYouTubeUrl(url) {
+        try {
+            const urlObj = new URL(url);
+            const hostname = urlObj.hostname.toLowerCase();
+
+            // Extract video ID
+            let videoId = null;
+
+            if (hostname.includes('youtu.be')) {
+                // Format: https://youtu.be/ILsA2VFJ150?si=xxxxx
+                // Video ID is in pathname
+                videoId = urlObj.pathname.split('/')[1];
+                if (videoId) {
+                    return `https://youtu.be/${videoId}`;
+                }
+            } else if (hostname.includes('youtube.com')) {
+                // Format: https://www.youtube.com/watch?v=ILsA2VFJ150&list=...
+                // Video ID is in 'v' parameter
+                videoId = urlObj.searchParams.get('v');
+                if (videoId) {
+                    return `https://www.youtube.com/watch?v=${videoId}`;
+                }
+            }
+
+            // If couldn't extract video ID, return original URL
+            console.warn('Could not extract YouTube video ID, using original URL:', url);
+            return url;
+        } catch (e) {
+            console.error('Error cleaning YouTube URL:', e);
+            return url;
+        }
+    }
+
     // Process URL with options
     async processUrl(url, options = {}) {
         // Detect if this is a YouTube URL
@@ -46,9 +80,14 @@ export class ApiService {
             console.log('🎬 YouTube URL detected, routing to yt-dlp service');
             apiEndpoint = '/api/youtube';
 
+            // Clean YouTube URL (remove playlist, radio, and other parameters)
+            const cleanUrl = this.cleanYouTubeUrl(url);
+            console.log('🧹 Original URL:', url);
+            console.log('✨ Cleaned URL:', cleanUrl);
+
             // yt-dlp service expects: { url, quality }
             requestData = {
-                url: url,
+                url: cleanUrl,
                 quality: options.videoQuality || '720'
             };
         } else {
