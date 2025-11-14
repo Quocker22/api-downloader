@@ -84,6 +84,26 @@ services:
       timeout: 10s
       retries: 3
 
+  # YouTube yt-dlp Handler - Custom YouTube downloader (bypass Cobalt)
+  ytdlp-service:
+    build:
+      context: ./ytdlp-service
+      dockerfile: Dockerfile
+    container_name: ytdlp-youtube-handler
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5003:5003"
+    volumes:
+      - ./ytdlp-service/cookies.txt:/app/cookies.txt:ro
+    networks:
+      - cobalt-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
   # Watchtower - Auto update containers
   watchtower:
     image: ghcr.io/containrrr/watchtower

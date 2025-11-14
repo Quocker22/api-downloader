@@ -1,0 +1,11 @@
+# Netscape HTTP Cookie File
+# This is a generated file! Do not edit.
+
+.youtube.com	TRUE	/	TRUE	0	VISITOR_INFO1_LIVE	YOUR_COOKIE_VALUE
+.youtube.com	TRUE	/	TRUE	0	LOGIN_INFO	YOUR_COOKIE_VALUE
+.youtube.com	TRUE	/	TRUE	0	SID	YOUR_COOKIE_VALUE
+.youtube.com	TRUE	/	TRUE	0	__Secure-3PSID	YOUR_COOKIE_VALUE
+
+# To generate real cookies.txt:
+# 1. Run: ./convert-cookies-to-txt.sh
+# 2. This will convert ../cookies.json to cookies.txt
